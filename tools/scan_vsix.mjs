@@ -24,6 +24,8 @@ export const forbiddenEntries = [
   /\.tsx?$/i,
   /\.vsix$/i,
   /(^|\/)sandbox(?:\.|\/)/i,
+  // Caches that ruff, mypy, pytest and Python write next to the code.
+  /(^|\/)(?:\.mypy_cache|\.ruff_cache|\.pytest_cache|__pycache__)\//,
   // Only the two PDF.js image decoders may ship as WebAssembly.
   /^(?!extension\/lib\/pdfjs\/wasm\/(?:jbig2|openjpeg)\.wasm$).*\.wasm$/i,
 ];

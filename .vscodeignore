@@ -10,6 +10,10 @@ node_modules/**
 .beads/**
 .oss-scanner/**
 .work/**
+.mypy_cache/**
+.ruff_cache/**
+.pytest_cache/**
+**/__pycache__/**
 *.tgz
 *.vsix
 .env*

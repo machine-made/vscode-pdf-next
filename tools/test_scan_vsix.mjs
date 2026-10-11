@@ -40,6 +40,10 @@ const forbiddenSamples = [
   'extension/lib/pdfjs/wasm/qcms_bg.wasm',
   'extension/lib/pdfjs/wasm/quickjs-eval.wasm',
   'extension/dist/jbig2.wasm',
+  'extension/.mypy_cache/3.14/cache.0.db',
+  'extension/.ruff_cache/0.17.0/4218687457001629207',
+  'extension/.pytest_cache/v/cache/nodeids',
+  'extension/lib/__pycache__/probe.cpython-314.pyc',
 ];
 
 for (const sample of forbiddenSamples) {
