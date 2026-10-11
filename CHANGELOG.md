@@ -1,5 +1,36 @@
 # Changelog
 
+## 2.5.2 (2026/10/11)
+
+The viewer behaves as in 2.5.1.
+
+- **The README has a disclaimer section, and LICENSE names the current
+  maintainer.** The disclaimer says that the extension comes without warranty
+  and that it is not affiliated with Microsoft or Mozilla. LICENSE puts
+  "Copyright (c) 2026 Ricardo A. S. Frantz" above the notice of the original
+  author, tomoki1207. `package.json` now declares the MIT licence.
+- **The package no longer ships the CMYK ICC colour profile.** PDF.js reads
+  the profile in `lib/pdfjs/iccs` only through the qcms WebAssembly module,
+  and it loads qcms only with `useWorkerFetch: true`. The viewer sets
+  `useWorkerFetch: false`, so it never read the profile. The two files were
+  15 kB. The `iccUrl` option went with them.
+- **The package scan rejects Python tool caches.** A local build took
+  `.mypy_cache` and `.ruff_cache` from the repository root, 24 files and
+  3.5 MB, and the scan passed. `.vscodeignore` now leaves out the mypy, ruff,
+  pytest and `__pycache__` directories, and `scan_vsix.mjs` rejects them. The
+  2.5.1 package did not contain them, because the release workflow builds
+  from a clean checkout.
+- **Test events carry monotonic times.** The extension stamped the viewer
+  events that the tests wait for with the wall clock. On WSL2 that clock
+  stepped back about every 5 s, so a test could miss an event and time out.
+  The events now carry `performance.now()` times.
+- **The test suite activates the extension before it calls the test
+  commands.** On macOS CI, a call failed with "command
+  'pdf-preview.internal.waitForViewerEvent' not found".
+- **`tools/make_image_fixtures.py` rebuilds the two scanned-image test
+  fixtures.** With Pillow 12.3.0, it writes `ccitt.pdf` and `jpeg2000.pdf`
+  byte for byte as committed.
+
 ## 2.5.1 (2026/10/09)
 
 - **A test now checks that scanned-page images are drawn.** It opens a CCITT
