@@ -54,7 +54,8 @@
       "find": "const DEFAULT_CACHE_SIZE = 10;",
       "replace": "const DEFAULT_CACHE_SIZE = 3;",
       // Rendered page canvases dominate resident memory: one A4 page at 200%
-      // on a 2x display is ~30 MB of RGBA. Upstream keeps ten of them alive.
+      // on a 2x display is 57 MB of RGBA, or 16.8 MB under the canvas cap in
+      // lib/main.mjs. Upstream keeps ten of them alive.
       // The viewer still grows the buffer to cover the visible pages
       // (max(DEFAULT_CACHE_SIZE, 2 * visible + 1)), so this lowers the floor
       // for the pages you have scrolled past, not the ones you are reading.
