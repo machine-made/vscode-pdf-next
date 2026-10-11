@@ -801,7 +801,6 @@ export class PdfPreview extends Disposable {
     );
     const settings = {
       cMapUrl: resolveDir(...pdfjsDir, 'cmaps'),
-      iccUrl: resolveDir(...pdfjsDir, 'iccs'),
       imageResourcesPath: resolveDir(...pdfjsDir, 'web', 'images'),
       hash: this.resource.fragment,
       path: docPath.toString(),

@@ -28,7 +28,8 @@
     // images. The JBIG2 module decodes JBIG2 and CCITT fax images, the usual
     // formats of scanned pages. The worker cannot import the JavaScript
     // fallbacks in a webview, so they are not shipped. qcms_bg.wasm is not
-    // shipped: PDF.js loads it only with useWorkerFetch=true.
+    // shipped: PDF.js loads it only with useWorkerFetch=true. The CMYK ICC
+    // profile in iccs/ works only through qcms, so it is not shipped either.
     { "from": "wasm/openjpeg.wasm", "to": "lib/pdfjs/wasm/openjpeg.wasm" },
     { "from": "wasm/LICENSE_OPENJPEG", "to": "lib/pdfjs/wasm/LICENSE_OPENJPEG" },
     {
@@ -41,7 +42,6 @@
       "from": "wasm/LICENSE_PDFJS_JBIG2",
       "to": "lib/pdfjs/wasm/LICENSE_PDFJS_JBIG2",
     },
-    { "from": "iccs", "to": "lib/pdfjs/iccs" },
   ],
 
   // Edits applied to the vendored runtime after copying. Each pattern must
