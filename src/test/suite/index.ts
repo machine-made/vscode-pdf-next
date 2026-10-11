@@ -624,6 +624,7 @@ async function assertScannedImagesAreDrawn(
   // jpeg2000.pdf: left half blue, right half white, 40 x 30 px, lossless
   // JP2 from Pillow and OpenJPEG.
   // Poppler gives 0.462 and 0.498 for the two pages.
+  // tools/make_image_fixtures.py writes both files.
   const expectations = [
     { name: 'ccitt.pdf', pageInk: 0.46 },
     { name: 'jpeg2000.pdf', pageInk: 0.5 },
