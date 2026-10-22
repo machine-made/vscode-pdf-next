@@ -1,0 +1,92 @@
+{
+  // Source package pinned for the PDF.js 6 line.
+  "packageName": "pdfjs-dist",
+  "version": "6.4.299",
+  "integrity": "sha512-AVl138zALtfaAPvADulE0PZThbYzCBS79nL4pOSL/6Sm/4AH5A21BD9VHt97OlCuzJuCpmeZtAtkinisF4Vb1g==",
+
+  // Keep downloads/extraction inside the ignored workspace folder.
+  "workDirectory": ".work/pdfjs-dist-6.4.299",
+  "sourceDirectory": ".work/pdfjs-dist-6.4.299/package",
+
+  // Old PDF.js 3 layout plus the regenerated PDF.js 5 tree.
+  "remove": ["lib/pdfjs", "lib/build", "lib/web", "lib/LICENSE"],
+
+  // Runtime files copied into the VS Code extension package.
+  "copy": [
+    { "from": "LICENSE", "to": "lib/pdfjs/LICENSE" },
+    { "from": "build/pdf.min.mjs", "to": "lib/pdfjs/build/pdf.min.mjs" },
+    {
+      "from": "build/pdf.worker.min.mjs",
+      "to": "lib/pdfjs/build/pdf.worker.min.mjs",
+    },
+    { "from": "web/pdf_viewer.mjs", "to": "lib/pdfjs/web/pdf_viewer.mjs" },
+    { "from": "web/pdf_viewer.css", "to": "lib/pdfjs/web/pdf_viewer.css" },
+    { "from": "web/images", "to": "lib/pdfjs/web/images" },
+    { "from": "cmaps", "to": "lib/pdfjs/cmaps" },
+    { "from": "standard_fonts", "to": "lib/pdfjs/standard_fonts" },
+    // The worker decodes images with WebAssembly. OpenJPEG decodes JPEG 2000
+    // images. The JBIG2 module decodes JBIG2 and CCITT fax images, the usual
+    // formats of scanned pages. The worker cannot import the JavaScript
+    // fallbacks in a webview, so they are not shipped. qcms_bg.wasm is not
+    // shipped: PDF.js loads it only with useWorkerFetch=true. The CMYK ICC
+    // profile in iccs/ works only through qcms, so it is not shipped either.
+    { "from": "wasm/openjpeg.wasm", "to": "lib/pdfjs/wasm/openjpeg.wasm" },
+    { "from": "wasm/LICENSE_OPENJPEG", "to": "lib/pdfjs/wasm/LICENSE_OPENJPEG" },
+    {
+      "from": "wasm/LICENSE_PDFJS_OPENJPEG",
+      "to": "lib/pdfjs/wasm/LICENSE_PDFJS_OPENJPEG",
+    },
+    { "from": "wasm/jbig2.wasm", "to": "lib/pdfjs/wasm/jbig2.wasm" },
+    { "from": "wasm/LICENSE_JBIG2", "to": "lib/pdfjs/wasm/LICENSE_JBIG2" },
+    {
+      "from": "wasm/LICENSE_PDFJS_JBIG2",
+      "to": "lib/pdfjs/wasm/LICENSE_PDFJS_JBIG2",
+    },
+  ],
+
+  // Edits applied to the vendored runtime after copying. Each pattern must
+  // appear exactly once, so a PDF.js release that rewrites the surrounding
+  // code fails the update loudly instead of quietly dropping the patch and
+  // handing back the upstream default.
+  "patch": [
+    {
+      "file": "lib/pdfjs/web/pdf_viewer.mjs",
+      "find": "const DEFAULT_CACHE_SIZE = 10;",
+      "replace": "const DEFAULT_CACHE_SIZE = 3;",
+      // Rendered page canvases dominate resident memory: one A4 page at 200%
+      // on a 2x display is 57 MB of RGBA, or 16.8 MB under the canvas cap in
+      // lib/main.mjs. Upstream keeps ten of them alive.
+      // The viewer still grows the buffer to cover the visible pages
+      // (max(DEFAULT_CACHE_SIZE, 2 * visible + 1)), so this lowers the floor
+      // for the pages you have scrolled past, not the ones you are reading.
+      "reason": "Keep 3 rendered pages instead of 10; canvases dominate memory.",
+    },
+    {
+      "file": "lib/pdfjs/web/pdf_viewer.mjs",
+      "find": "      canvas.className = \"detailView\";\n    }\n    const {\n      width,\n      height\n    } = viewport;",
+      "replace": "      canvas.className = \"detailView\";\n    }\n    const width = this.pageView.div.clientWidth || viewport.width;\n    const height = this.pageView.div.clientHeight || viewport.height;",
+      // CSS sizes the page box with round(down, ..., 1px). Upstream places the
+      // detail canvas in percent of the unrounded viewport size. The browser
+      // then shows the detail canvas a little below 1:1 and resamples it, so
+      // the sharp region blurs. The blur is easiest to see at a device pixel
+      // ratio of 3. The client size is the rounded box. A hidden page reports
+      // 0, so the viewport size stays as the fallback.
+      "reason": "Place the detail canvas in the rounded page box so it stays 1:1 and sharp.",
+    },
+    {
+      "file": "lib/pdfjs/build/pdf.min.mjs",
+      "find": "complete=t=>{w.renderTasks.delete(_);if(C){",
+      "replace": "complete=t=>{w.renderTasks.delete(_);if(C&&!t){",
+      // With enableOptimizedPartialRendering, the first full render records
+      // the bounding box of each drawing operation. Later detail renders skip
+      // the operations outside the visible region. Upstream also keeps the
+      // boxes when a scroll or a zoom cancels the recording render. A later
+      // detail render then skips real content. Keep the boxes only from a
+      // render that completed.
+      "reason": "Cache operation bounds only from a render that completed.",
+    },
+  ],
+
+  // Small provenance file kept next to the vendored runtime.
+  "versionFile": "lib/PDFJS_VERSION",
+}

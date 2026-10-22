@@ -1,0 +1,669 @@
+# Changelog
+
+## 2.5.2 (2026/10/11)
+
+The viewer behaves as in 2.5.1.
+
+- **The README has a disclaimer section, and LICENSE names the current
+  maintainer.** The disclaimer says that the extension comes without warranty
+  and that it is not affiliated with Microsoft or Mozilla. LICENSE puts
+  "Copyright (c) 2026 Ricardo A. S. Frantz" above the notice of the original
+  author, tomoki1207. `package.json` now declares the MIT licence.
+- **The package no longer ships the CMYK ICC colour profile.** PDF.js reads
+  the profile in `lib/pdfjs/iccs` only through the qcms WebAssembly module,
+  and it loads qcms only with `useWorkerFetch: true`. The viewer sets
+  `useWorkerFetch: false`, so it never read the profile. The two files were
+  15 kB. The `iccUrl` option went with them.
+- **The package scan rejects Python tool caches.** A local build took
+  `.mypy_cache` and `.ruff_cache` from the repository root, 24 files and
+  3.5 MB, and the scan passed. `.vscodeignore` now leaves out the mypy, ruff,
+  pytest and `__pycache__` directories, and `scan_vsix.mjs` rejects them. The
+  2.5.1 package did not contain them, because the release workflow builds
+  from a clean checkout.
+- **Test events carry monotonic times.** The extension stamped the viewer
+  events that the tests wait for with the wall clock. On WSL2 that clock
+  stepped back about every 5 s, so a test could miss an event and time out.
+  The events now carry `performance.now()` times.
+- **The test suite activates the extension before it calls the test
+  commands.** On macOS CI, a call failed with "command
+  'pdf-preview.internal.waitForViewerEvent' not found".
+- **`tools/make_image_fixtures.py` rebuilds the two scanned-image test
+  fixtures.** With Pillow 12.3.0, it writes `ccitt.pdf` and `jpeg2000.pdf`
+  byte for byte as committed.
+
+## 2.5.1 (2026/10/09)
+
+- **A test now checks that scanned-page images are drawn.** It opens a CCITT
+  fax page and a JPEG 2000 page and measures the drawn pixels. The decoder
+  fault that 2.5.0 fixed passed every test, because the load still
+  succeeded.
+- **Releases go to the VS Code Marketplace only.** The release workflow no
+  longer has the Open VSX step, which every release skipped.
+
+## 2.5.0 (2026/10/08)
+
+- **PDF.js went from 6.2.108 to 6.4.299.**
+- **Scanned pages show their images.** JBIG2, CCITT fax and JPEG 2000
+  images were blank, because the worker could not load the JavaScript
+  decoders. The viewer now decodes these images with WebAssembly. The CSP
+  adds `'wasm-unsafe-eval'` and still has no `'unsafe-eval'`. The package
+  ships two `.wasm` files, and the release scanner rejects any other.
+- **A full-page canvas holds at most 4,194,304 pixels (16.8 MB).** PDF.js
+  draws a larger page at low resolution and adds a second canvas for the
+  visible region at full resolution. The window size sets the size of that
+  second canvas. In a 976 × 661 test window at 200% zoom on a 2x display,
+  the canvases of a dense page fell from 14.2 to 3.4 megapixels, which is
+  57 MB to 14 MB.
+- **The pages redraw when the display density changes.** After a VS Code
+  zoom, the pages kept their old resolution and looked blurred.
+- **Two engine patches came over from pdf-next.** The sharp detail canvas
+  now fits the rounded page box. A cancelled render no longer records the
+  bounds that later detail renders use to skip content.
+- **The Liberation font licence file is correct.** Upstream replaced the SIL
+  Open Font License text with the GPL v2 and font exception that applies to
+  version 1.07.4. The font files did not change.
+- **The PDF.js updater reads the output of npm 12.**
+
+## 2.4.3 (2026/08/12)
+
+Clear came back on the wheel and then went away again, because nothing was
+holding it there. The viewer is created with `retainContextWhenHidden: false`,
+so hiding the tab tears the webview down, and showing it again restarts the
+viewer from the HTML it was built with — HTML that carries the page mode as it
+was when the editor opened. Cycling to Clear updated the setting and the pages,
+then the next reload quietly restored the snapshot. With `sepia` saved, every
+reload put sepia back, which is what "it never goes back to Clear" was.
+
+- **The host re-seeds the viewer with the live page mode** on every viewer
+  start and whenever the setting changes, so a reloaded webview can no longer
+  revert to a stale snapshot. A re-seed does not write back to the setting;
+  only pressing the button does.
+- **The wheel has one definition.** `lib/pageMode.mjs` holds the order, the
+  labels, the page colours and the legacy setting names, and the viewer imports
+  it. Order lived in four places before, which is why every fix moved one of
+  them and left the others behind.
+- **Cycling, clearing and re-seeding go through one setter**, so they cannot
+  drift apart.
+- **The wheel is visible.** The toolbar button shows a dot per stop with the
+  current one filled, and the tooltip reads "Page mode 3 of 4: Invert — click
+  for Sepia (Clear → Night → Invert → Sepia → …)". One word and a hidden
+  tooltip made a press that did nothing look identical to a press that worked.
+- **The cycle is tested by running it**, not by matching the source line that
+  declares it. The old assertions restated the code, so they passed whether or
+  not the wheel worked and had to be rewritten to agree with every change.
+
+## 2.4.2 (2026/08/12)
+
+Clearing a page mode did not clear it. Page colours are drawn into the page
+canvas rather than applied over it, so a colour change only shows once the
+canvas is redrawn — and the viewer asked PDF.js to refresh, which is not the
+same thing. `PDFViewer.refresh()` routes through `PDFPageView.update()`, and
+when nothing about the page geometry has changed that resets with
+`keepCanvasWrapper`, which never calls `_resetCanvas()`. The old bitmap
+stayed. Leaving Sepia therefore turned the page background white through CSS
+and left the text brown, which looks like nothing happened. Each page canvas
+is now dropped explicitly when the colours change.
+
+- **Reader is called Sepia**, which is what it is. `sepia` is now the setting
+  value; `reader` keeps working.
+- **Clear is a stop in the cycle again.** Removing it in 2.2.2 fixed landing
+  on white every other press and created a worse problem: no way back to
+  white at all. The cycle is Clear → Night → Invert → Sepia, and the direct
+  routes added in 2.4.0 (right-click, Command Palette) still jump straight
+  to Clear from anywhere.
+
+## 2.4.0 (2026/08/12)
+
+Plain white pages are reachable again. The toolbar button cycles Night,
+Reader and Invert without stopping on plain pages — landing on white every
+third press was what made the cycle irritating — but that left Shift+click as
+the only way back, which is not something anyone finds. Getting back to plain
+white pages now has three routes that do not depend on a tooltip:
+
+- **Right-click the page-mode button.** No modifier to know about.
+- **Command Palette: `vscode-pdf Next: Clear Page Mode (Plain White Pages)`**,
+  which is also bindable to a key.
+- Shift+click or Alt+click the button, as before, and the setting
+  `pdf-preview.appearance.theme: auto`.
+
+The button tooltip now names the escape hatch and what it gets you rather
+than just saying "clear".
+
+Three memory and reload fixes carried over from pdf-next, the standalone viewer
+that shares this engine. All three matter most in the same place: a LaTeX or
+Typst loop, where the document is reloaded hundreds of times in a session.
+
+- **Rendered canvases are freed on reload.** PDF.js empties its page list and
+  drops the page buffer without calling `destroy()` on the views it discards,
+  so every rendered canvas waited for the garbage collector. Harmless in a
+  viewer you open once; not what this extension does. The viewer is now a
+  subclass that frees them at the point we already know they are dead.
+- **Three rendered pages are kept instead of ten.** Canvases dominate resident
+  memory — one A4 page at 200% on a 2x display is about 30 MB of RGBA — and
+  upstream keeps ten alive. The viewer still grows its buffer to cover whatever
+  is visible, so this lowers the floor for pages you have scrolled past, not
+  the ones you are reading. The edit is applied by `bun run update:pdfjs` from
+  a `patch` list, fails the update loudly if PDF.js changes around it, and is
+  checked again against the shipped bytes.
+- **A half-written PDF is waited out, not shown as an error.** The file watcher
+  fires when a build *starts* writing, so the first read often landed on a
+  truncated file; the viewer failed to parse it, kept the previous version and
+  retried, flashing `Could not refresh PDF` on the way to a perfectly good
+  document. The bytes are now checked for the `%%EOF` trailer before they are
+  sent, and re-read for up to two seconds if it is missing. Past that the file
+  goes through anyway — one that never grows a trailer is genuinely broken, and
+  the error is the honest answer.
+
+Also fixed: `bun run update:pdfjs` could not extract its own download on
+Windows. GNU tar — which is what a shell resolves when Git's bin is on PATH —
+reads the leading `C:` of an absolute path as a remote host and fails with
+`Cannot connect to C: resolve failed`. It uses repo-relative paths now.
+
+## 2.3.0 (2026/08/12)
+
+Viewer chrome rebuilt to look and behave like the rest of VS Code, plus five
+defects found while auditing it.
+
+Fixes:
+
+- Status text — including `Could not load PDF`, the deleted-file notice, and
+  loading progress — was clipped to a 1x1 screen-reader-only box in any editor
+  pane narrower than 1160px, which is every side-by-side layout. It now floats
+  over the document as a widget and survives at any width.
+- `Ctrl/Cmd+F` did nothing below 420px, where the find group is hidden and the
+  shortcut focused a `display: none` input. It now reveals the find bar first,
+  and `Esc` closes it.
+- The zoom control read a stale preset after keyboard or button zoom, and wrote
+  the live percentage into the status element — so zooming erased load errors
+  and vice versa. The percentage now shows in the zoom control itself.
+- Automatic reload had the same icon as manual refresh, and toolbar labels are
+  hidden at normal widths, so two adjacent buttons were indistinguishable.
+  Auto-reload now has its own icon.
+- Inverted mode inverted the whole page including the text layer, which turned
+  find highlights blue in the mode chosen for contrast. The filter is now
+  scoped to the canvas.
+
+Appearance:
+
+- Toolbar buttons are borderless like VS Code's own action bars instead of
+  being drawn as filled text inputs, and presses swap the background rather
+  than scaling the button.
+- Viewer chrome derives from the active theme; the hardcoded `#f6f8fa`,
+  `#ffffff` and `#1f1f1f` surfaces are gone, so custom themes no longer clash.
+  Reader mode warms the surrounding surface to match its sepia pages.
+- Pages have a visible edge again (PDF.js 6 ships them without one), so page
+  boundaries read in every mode.
+- Denser 36px toolbar, 22px outline rows, native select popups and scrollbars
+  follow the editor theme, and the theme and sidebar buttons reserve their
+  label width so clicking them no longer reflows the toolbar.
+- The focusable document region shows a focus ring, and the password dialog
+  uses VS Code widget tokens.
+
+## 2.2.2 (2026/08/11)
+
+- Stop the page-theme button from cycling back to plain white pages. It now
+  walks only the reading modes — Night, Reader, Invert — so every click lands
+  on something readable. Shift+click (or Alt+click) the button to return to
+  plain pages, which is also still what `pdf-preview.appearance.theme`
+  controls for every PDF.
+- Replace the README badges. Shields.io retired all Visual Studio Marketplace
+  badges in April 2026, so the version, installs, and rating badges rendered a
+  grey "retired badge" placeholder; they are replaced with a GitHub-native CI
+  badge and static Marketplace/GitHub badges, matching vscode-diff Next. The
+  Open VSX badge and download link are removed because the extension is not
+  published there.
+
+- Make Reader mode visually distinct: pages render with a warm e-reader
+  sepia palette (`#f4ecd8` paper, `#5b4636` text) instead of duplicating
+  Night's dark rendering, and find highlights use the light-paper colors on
+  sepia pages. The theme cycle now offers four genuinely different looks:
+  Clear, Night, Reader, and Invert.
+
+## 2.2.0 (2026/08/11)
+
+- Load PDF bytes through the extension host instead of a webview resource
+  fetch. The webview's service-worker resource path stalls for many seconds
+  (or indefinitely) on UNC-backed files such as `\\wsl.localhost\...` WSL
+  shares, which made PDFs from WSL workspaces appear only after a long hang.
+  The host reads the file with the workspace filesystem API — which handles
+  UNC shares and remote workspaces correctly — and transfers the bytes to the
+  viewer as a binary message. The webview now loads resources only from the
+  extension itself, tightening the sandbox. The integration suite can replay
+  its viewer tests against a WSL UNC path (`.work/pdf-fixture-dir.txt`
+  override).
+- Keep live reload working on WSL/UNC files: VS Code's file watchers cannot
+  watch `\\wsl.localhost\...` shares, so previews of UNC-backed PDFs also
+  poll file metadata every 2 seconds as a fallback, including
+  delete/recreate cycles from TeX-style builds.
+
+- Upgrade the bundled PDF.js runtime from 5.6.205 to 6.2.108. PDF.js 6
+  removed its eval-based font/PostScript code paths entirely; the release
+  compat check now verifies that no `eval`/`new Function` exists anywhere in
+  the vendored runtime instead of relying on the removed `isEvalSupported`
+  flag.
+- Restore the complete CJK character-map set. Previous packages shipped an
+  incomplete cmap subset (17 of 169 files, missing common horizontal-writing
+  variants), which could break text extraction and rendering in some Chinese,
+  Japanese, and Korean PDFs.
+- Make the release tooling run on Windows: the PDF.js updater resolves npm
+  through the shell, and the VSIX scanner and its self-tests fall back to
+  bsdtar when zip/unzip are unavailable.
+- Repair and expand CI: the workflow still used `npm ci` after the bun
+  migration (no `package-lock.json` exists, so every run failed) and now
+  installs with bun, and verification runs on a matrix of Linux, Windows, and
+  macOS against both VS Code 1.95.0 (the `engines` floor) and the latest
+  stable release.
+- Run PDF parsing and rendering in a real PDF.js worker thread. The viewer no
+  longer imports the ~1.2 MB worker bundle on the webview main thread, which
+  previously forced PDF.js into "fake worker" mode and did all PDF compute on
+  the UI thread. Because VS Code webviews serve extension resources through a
+  service worker that dedicated workers cannot reach, PDF.js's own worker
+  bootstrap stalls in webviews (a multi-second hang before silently falling
+  back to the UI thread); the viewer now builds the worker in the page
+  context from a self-contained blob (polyfills + worker bundle, no imports)
+  and hands PDF.js the running worker. On any failure the previous fallback
+  path remains. The `viewer-ready` event reports the active worker mode plus
+  fetch/total load timings, an integration test asserts real-worker mode, and
+  load results are logged to the "vscode-pdf Next" output channel.
+- Polyfill `Uint8Array.prototype.toHex`/`Uint8Array.fromHex`: PDF.js 6 uses
+  `toHex` in the worker, which VS Code 1.95's Electron does not ship, so PDFs
+  failed to load entirely on the oldest supported VS Code. The runtime compat
+  check now also covers the hex helpers and scans the core bundle for
+  Baseline API usage.
+- Fix the VS Code integration test harness: it previously launched the CLI
+  wrapper instead of the Electron executable, which on Windows detaches and
+  reports success without running any test. Also make the suite pass on real
+  Windows runs (platform-correct path expectations, CRLF-tolerant source
+  contracts, extension-host console quirks) and refresh source contracts that
+  had drifted from the code (theme cycle, copy shortcut, print dispatch,
+  auto-reload persistence, zero-page guard).
+- Switch appearance modes (Clear/Night/Reader/Invert) by re-rendering pages in
+  place instead of refetching and reparsing the whole document.
+- Update the active thumbnail highlight in constant time instead of scanning
+  every thumbnail on each page change.
+- Build release bundles with the production esbuild profile (no source maps)
+  and align the esbuild target with the VS Code 1.95 runtime (Node 20). The
+  host bundle stays unminified on purpose: the release scanner verifies
+  behavioral source patterns inside the packaged VSIX.
+- Drop the manually declared `activationEvents`; VS Code 1.74+ generates them
+  from the `contributes` section.
+
+## 2.1.0 (2026/06/13)
+
+- Add a separate Auto Reload toolbar toggle and `pdf-preview.reload.automatic`
+  setting while keeping manual reload available through the toolbar command,
+  command palette action, and `Cmd/Ctrl+R`.
+- Add reliable PDF text copy through the host clipboard bridge, plus opt-in
+  `pdf-preview.copy.autoCopySelection` support for copying selected PDF text on
+  mouse release.
+- Live-update open previews when Auto Reload or auto-copy settings change, and
+  keep multiple previews synchronized with settings changes.
+- Harden host-to-viewer webview message handling by validating trusted message
+  sources and known message types before dispatch.
+
+## 2.0.2 (2026/05/12)
+
+- Fix toolbar clipping in side-by-side and Working Tree diff PDF previews by
+  compacting toolbar labels before split-pane widths cause controls to collide.
+- Keep toolbar buttons from shrinking their labels into the button borders, and
+  lock the responsive toolbar contract in both source and packaged-webview
+  checks.
+
+## 2.0.1 (2026/05/12)
+
+- Migrate the package manager from npm to bun; replace `package-lock.json` with
+  `bun.lock`, update all build/test/lint scripts, and update the release workflow
+  to install and verify with bun.
+- Close the 2026-04-30 security-audit hardening pass: add a semver regex guard
+  on the `release_tag` workflow input so malformed tags fail before any shell
+  expansion, and document the trusted-workspace `printCommand` boundary in
+  SECURITY.md.
+- Change the default Print action to open the PDF in the system viewer for
+  reliable native print dialogs instead of silently queueing `lp`.
+- Add `vscode-pdf Next: Print Directly to Default Printer` for advanced direct
+  printing through `pdf-preview.printCommand` or CUPS `lp`, with captured
+  diagnostics and explicit fallback messages.
+- Add a maintenance guide for dependency, PDF.js, VS Code, packaging, security,
+  and release upkeep.
+
+## 2.0.0 (2026/04/29)
+
+- Promote the fork to a public release after the PDF.js 5 viewer hardening,
+  package hygiene, thumbnail navigation, print/link handling, focus-preserving
+  reloads, and bundled release automation work completed across the 1.x line.
+- Keep the 1.10.0 bundled extension-host runtime and guarded release workflow;
+  this release is a metadata/publication milestone rather than a viewer runtime
+  rewrite.
+
+## 1.10.0 (2026/04/29)
+
+- Bundle the extension host entrypoint with esbuild and load the extension from
+  `dist/extension.js` instead of compiled `out/src` files.
+- Keep `vscode` external to the bundle, run the bundle step during
+  `vscode:prepublish`, and build the bundled entrypoint before VS Code tests.
+- Tighten VSIX hygiene so packages ship the bundled host output and `lib/`
+  runtime assets only; the scanner now rejects maps, source/test files, plans,
+  scratch/temp files, and missing PDF.js runtime files.
+- Record the pre-bundling baseline for comparison:
+  `pdf-preview-next-1.9.0.vsix` packaged 138 entries and was 1,529,171 bytes
+  (1.46 MiB). The bundled `pdf-preview-next-1.10.0.vsix` packages 133 entries
+  and remains about 1.46 MiB.
+- Harden release automation with SHA-pinned GitHub Actions, workflow
+  concurrency groups, and a `marketplace-publish` environment gate before VS
+  Code Marketplace or Open VSX publishing can use configured secrets.
+
+## 1.9.0 (2026/04/29)
+
+- Add a thumbnails sidebar panel backed by bounded, IntersectionObserver-driven
+  canvas rendering so large PDFs do not allocate thumbnails for every page at
+  once.
+- Add `pdf-preview.default.sidebarPanel` with `outline` and `thumbnails` values;
+  `pdf-preview.default.sidebar` still controls whether the sidebar opens by
+  default.
+- Persist the active sidebar panel with per-PDF view state while preserving
+  compatibility with older saved view states that only stored outline visibility.
+- Add thumbnail click navigation, active-page tracking, and keyboard navigation:
+  Up/Down move through thumbnails and Enter jumps to the focused page.
+
+## 1.8.0 (2026/04/29)
+
+- Keep file-watcher reloads from refocusing the viewer while preserving
+  user-initiated refresh focus behavior.
+- Add integration coverage for the file-watcher reload focus path.
+
+## 1.7.0 (2026/04/29)
+
+- Add host-side system printing for the toolbar and command path, with an
+  optional no-shell `pdf-preview.printCommand` override.
+- Add local inter-PDF link handling for relative `.pdf` links, preserving
+  fragments such as `#page=2` without relaxing the webview CSP.
+- Make `vscode-pdf Next: Reset View State` reset the active webview
+  immediately instead of waiting for the next open.
+
+## 1.6.0 (2026/04/28)
+
+- Add checked-in regression fixtures for outline, password-protected, and
+  intentionally broken PDFs.
+- Mark PDF defaults and appearance settings as resource-scoped and read them
+  with the opened PDF as the VS Code configuration scope.
+- Add `vscode-pdf Next: Reset View State`, clearing only the active PDF's
+  saved page, zoom, scroll, and outline-sidebar state.
+- Add contributed-surface tests for command IDs, setting defaults, resource
+  scopes, webview resource roots, and nonce-bound CSP behavior.
+- Harden VSIX packaging hygiene so source files, plans, scratch directories,
+  and test fixtures stay out of release packages.
+
+## 1.5.0 (2026/04/28)
+
+- Add `night` to `pdf-preview.appearance.theme`, using PDF.js page recoloring
+  for lower-eye-strain reading in dark VS Code setups.
+- Add `reader` to `pdf-preview.appearance.theme` as the future smart
+  color-preserving reader mode; it currently uses the safe night rendering path.
+- Add a toolbar page-mode cycle for switching the active preview between
+  `Clear`, `Night`, `Reader`, and `Invert`; the choice is kept across preview
+  refreshes and newly opened PDFs.
+- Keep the dark page background applied while a dark preview refreshes, avoiding
+  a brief white page flash during PDF.js reload.
+- Keep `dark-pages` as a compatibility alias for `night`.
+- Keep `inverted` available as the fallback mode for scanned or image-heavy PDFs
+  where page recoloring is not appropriate.
+- Preserve the default `auto` appearance behavior for existing users.
+
+## 1.4.8 (2026/04/28)
+
+- Fix the toolbar `External` button and `Open Externally` command path so PDFs
+  open through the system PDF handler instead of VS Code's binary/text fallback
+  editor.
+- Add packaged-artifact assertions that reject the old
+  `vscode.openWith(..., 'default')` Source path.
+- Relabel the toolbar action from `Source` to `External` and switch its icon to
+  match the corrected behavior.
+- Increase find-result highlight contrast, with a stronger active-match color
+  in light, dark, and inverted themes.
+
+## 1.4.7 (2026/04/28)
+
+- Replace toolbar button text with inline SVG icons (chevrons, zoom, search, list-tree, printer, refresh, file-code) using a single SVG symbol block with currentColor strokes.
+- Add icon+label structure to toolbar buttons with labels hidden below 720px container width using CSS container queries.
+- Remove horizontal scroll from toolbar and use container-type: inline-size for responsive layout.
+- Tighten toolbar gaps (8px→6px, 5px→4px) and make find input flex within its group.
+- Add toolbar contract assertions to test suite for button structure, accessibility, and responsive CSS.
+
+## 1.4.6 (2026/04/28)
+
+- Fix the preview bootstrap race where the async PDF.js viewer module could
+  finish evaluating after `DOMContentLoaded` had already fired, leaving the
+  panel blank.
+- Start the viewer immediately when the document is already ready, while still
+  using the `DOMContentLoaded` listener for early-loading webviews.
+- Use an absolutely positioned `div` for the PDF.js viewer container, matching
+  the PDF.js 5 constructor contract and avoiding container validation startup
+  failures.
+- Polyfill `Map.prototype.getOrInsertComputed` and
+  `WeakMap.prototype.getOrInsertComputed` (TC39 Stage 3 "Upsert" proposal) in
+  `lib/polyfills.mjs`, imported before PDF.js. PDF.js 5.6.205 calls these
+  methods during the first PDF render, but the V8 inside current VS Code
+  Electron builds does not yet expose them; without the polyfill the
+  toolbar status reports `Could not load PDF: this[#fr].getOrInsertComputed
+is not a function`.
+- Keep the local webview PDF data loading path from 1.4.5 and remove temporary
+  diagnostic banner/logging instrumentation.
+
+## 1.4.5 (2026/04/27) - superseded by 1.4.6
+
+- Read the opened PDF through the webview frame and pass `Uint8Array` data to
+  PDF.js, bypassing range/stream loading against VS Code webview-resource URLs
+  that could leave the viewer stuck at `of 0`.
+- Disable PDF.js range and streaming modes for local webview resources.
+- This release was superseded because the async module loader could miss
+  `DOMContentLoaded` and still leave the preview blank.
+
+## 1.4.4 (2026/04/27)
+
+- Load the PDF.js core module before dynamically importing the PDF.js viewer
+  module so `globalThis.pdfjsLib` exists before PDF.js 5 evaluates
+  `pdf_viewer.mjs`.
+- Add an early webview bootstrap error handler that reports startup failures in
+  the preview instead of leaving a blank panel.
+- Rename the marketplace-facing extension display name to `vscode-pdf Next` and
+  describe it as a modern successor to the classic `vscode-pdf` extension.
+
+## 1.4.3 (2026/04/27)
+
+- Restore `style-src 'unsafe-inline'` in the webview CSP because PDF.js 5 writes
+  page, text-layer, annotation-layer, and scaling geometry through inline style
+  properties at runtime. Scripts remain nonce-bound and eval remains disabled.
+
+## 1.4.2 (2026/04/27)
+
+- Disable retained hidden webview contexts so hidden PDF previews are recreated
+  from the current extension bundle after local VSIX upgrades. This prevents
+  stale panels from trying to load removed extension-resource paths.
+- Smooth the webview toolbar with clearer focus states, button press feedback,
+  tabular page/find counters, and less abrupt status updates.
+- Add a regression assertion that the custom editor keeps retained webview
+  contexts disabled.
+
+## 1.4.1 (2026/04/27)
+
+- Add commands for opening a PDF preview and reopening the active preview as raw
+  PDF source.
+- Add an outline sidebar for PDFs that provide bookmarks, wired to the existing
+  `pdf-preview.default.sidebar` setting.
+- Persist per-PDF page, zoom, and scroll state in workspace state and restore it
+  on reopen unless an explicit URL hash is used.
+- Keep previews open across temporary PDF delete/recreate cycles by default;
+  `pdf-preview.reload.closeOnDelete` restores the old close-on-delete behavior.
+- Add finite appearance settings for dark/inverted viewing and page spacing.
+- Add lightweight in-viewer keyboard navigation shortcuts.
+- Add a visible `Refresh` toolbar button, `PDF Preview Next: Refresh Preview`
+  command, and `Ctrl+R` / `Cmd+R` in-viewer refresh.
+- Debounce automatic refresh after file changes with
+  `pdf-preview.reload.debounceMs`, preserving the previous rendered PDF and
+  retrying once if a rebuild temporarily writes an incomplete file.
+- Preserve manual outline-sidebar visibility across refreshes.
+- Add a visible `Print` toolbar button and `PDF Preview Next: Print` command.
+  The webview tries the browser print path first and falls back to opening the
+  PDF externally when printing is unavailable.
+- Improve hand-scroll behavior so text selection/copy and text dragging do not
+  start pointer-captured drag scrolling.
+- Add CI and tag-release workflows for tests, VSIX packaging, content scanning,
+  GitHub release assets, VS Code Marketplace publishing, and Open VSX publishing
+  when tokens are configured.
+- Document which deprecated upstream issues are now covered and which editor/API
+  requests remain out of scope.
+
+## 1.4.0 (2026/04/27)
+
+- Upgrade the vendored PDF.js runtime to `pdfjs-dist@5.6.205`.
+- Replace the legacy global `PDFViewerApplication` integration with a small
+  ESM viewer shell owned by this extension.
+- Keep PDF.js eval and WASM execution disabled so the webview CSP does not need
+  `unsafe-eval`, `wasm-unsafe-eval`, or inline styles.
+- Preserve live-reload behavior without patching PDF.js private viewer
+  internals.
+- Add built-in page navigation, zoom, find, password prompt, and hand-scroll
+  support for the new viewer shell.
+- Add `npm run update:pdfjs` with a pinned JSONC manifest and npm integrity
+  verification for future PDF.js upgrades.
+- Remove the old PDF.js 3 full viewer, locales, source maps, and debugger
+  artifacts from the vendored runtime.
+- Do not package unused PDF.js scripting sandbox or WASM decoder binaries.
+
+## 1.3.0 (2026/04/27)
+
+- Harden webview configuration escaping for PDF paths containing HTML-sensitive
+  characters.
+- Resolve extension resource URIs with VS Code URI helpers for better
+  cross-platform behavior.
+- Fix PDF live reload by watching the opened file with a directory-relative
+  pattern instead of passing an absolute path as a glob.
+- Keep PDF.js reload cleanup reliable when a reload fails.
+- Stop PDF.js from intercepting VS Code print and command-palette shortcuts.
+- Add defensive support for PDF URL hash destinations.
+- Keep PDF annotation popup text readable.
+- Exclude PDF.js source maps and debugger files from packaged VSIX builds.
+- Harden the webview CSP with nonce-based scripts and an explicit worker
+  policy.
+- Scope webview local resources to the extension and the opened PDF's
+  containing directory.
+- Disable PDF.js eval support while the PDF.js 5 migration is prepared.
+- Simplify preview disposal and message handling.
+- Modernize the TypeScript, ESLint, Prettier, VS Code test, and VSIX packaging
+  toolchain.
+
+## 1.2.3 (2026/04/27)
+
+- Publish improved fork under the `pdf-preview-next` identity.
+- Respect `pdf-preview.default.sidebar` during PDF.js startup, so persisted
+  PDF.js sidebar history does not override the configured default.
+- Replace the inherited icon with a new `PDF Preview Next` icon.
+- Keep VS Code type definitions out of the runtime package.
+- Document the project direction: simple, lightweight, robust, and fast.
+
+## 1.2.2 (2022/12/23)
+
+- Fix about rendering Unicode characters
+
+## 1.2.1 (2022/12/12)
+
+- Update PDF.js to 3.1.81-legacy
+- Restore scroll position during reload (#136)
+- Run under remote development (#100)
+
+### Thank you
+
+- @kfigiela Run extension locally when using remote development #100
+- @Daniel-Atanasov fix: Fix scroll location and flickering during reload #136
+
+## 1.2.0 (2021/12/15)
+
+- Allow pdf viewer to work in an untrusted workspace (#102)
+- Bump version of PDF.js to Stable (v2.10.377) (#120)
+
+### Bug fixes
+
+- Support Unicode in PDF by passing the right cMapUrl to pdf.js (#116)
+- Preserve the current page number and zoom level on reload (#121)
+
+### Thank you
+
+- @lramos15 Added settings about untrusted workspaces. #102
+- @aifreedom Fixed bug about Unicode charactors. #116
+- @simon446 Bump pdf.js version. #120
+- @zamzterz Fixed to preserve page number and scale on reload. #121
+
+## 1.1.0 (2020/07/13)
+
+- The issue about extension view is resolved.
+  - Remove message shown on loaded.
+- Support default viewer settings
+  - cursor (**hand** or tool)
+  - scale (**auto**, page-actual, etc...)
+  - sidebar (**hide** or show)
+  - scrollMode (**vertical**, horizontal or wrapped)
+  - spreadMode (**none**, odd or even)
+
+## 1.0.0 (2020/06/18)
+
+- [Change extension API](https://github.com/microsoft/vscode/issues/77131)
+- Resolve known issues about showing pdf preview.
+- Upgrade PDF.js to 2.4.456
+
+## 0.6.0 (2020/04/10)
+
+- Support auto reload (#52)
+- Migrate vscode-extension packages
+
+### Thank you
+
+- @GeorchW Implemented auto-refresh ( #11 ) #52
+
+## 0.5.0 (2019/02/25)
+
+- Recovery for working even VSCode 1.31.x.
+- Avoid nested `<iframe>`.
+
+## 0.4.3 (2018/11/28)
+
+- Recovery for working even VSCode 1.30.0.
+
+## 0.4.2 (2018/11/28)
+
+- Revive display state on load VSCode.
+- [Event-Stream Package Security Update](https://code.visualstudio.com/blogs/2018/11/26/event-stream)
+
+## 0.4.0 (2018/11/9)
+
+- Migrate vscode internal api. Due to [Microsoft/vscode#62630](https://github.com/Microsoft/vscode/issues/62630)
+- Upgrade PDF.js to 2.1.36
+
+## 0.3.0 (2018/6/6)
+
+- Upgrade PDF.js to 1.9.426 (#23)
+
+### Thank you
+
+- @Kampfgnom bump to pdf.js version #23
+
+## 0.2.0 (2017/1/12)
+
+- Fixed displaying on linux (#5)
+- Be able to open PDF from context menu in explorer now (#6)
+
+### Thank you
+
+- @serl support for context menu in explorer #6
+
+## 0.1.0 (2016/11/30)
+
+- Add extension icon.
+- Use all PDF.js [Pre-built](https://mozilla.github.io/pdf.js/getting_started/#download) files.
+
+## 0.0.2 (2016/11/24)
+
+- consistent file icon
+
+## 0.0.1 (2016/10/25)
+
+- Initial release.
