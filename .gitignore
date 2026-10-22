@@ -1,9 +1,0 @@
-out
-dist
-node_modules
-package-lock.json
-*.vsix
-*.tgz
-.work/
-.vscode-test/
-.beads/.br_history/
