@@ -1,9 +1,9 @@
 # vscode-pdf Next — fast, secure PDF viewing in VS Code
 
-[![CI](https://github.com/ricardofrantz/vscode-pdf-next/actions/workflows/ci.yml/badge.svg)](https://github.com/ricardofrantz/vscode-pdf-next/actions/workflows/ci.yml)
+[![CI](https://github.com/machine-made/vscode-pdf-next/actions/workflows/ci.yml/badge.svg)](https://github.com/machine-made/vscode-pdf-next/actions/workflows/ci.yml)
 [![Marketplace](https://img.shields.io/badge/marketplace-vscode--pdf--next-blue)](https://marketplace.visualstudio.com/items?itemName=RicardoFrantz.pdf-preview-next)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![GitHub](https://img.shields.io/badge/github-vscode--pdf--next-blue)](https://github.com/ricardofrantz/vscode-pdf-next)
+[![GitHub](https://img.shields.io/badge/github-vscode--pdf--next-blue)](https://github.com/machine-made/vscode-pdf-next)
 
 Open PDFs right inside VS Code — with **true dark mode**, instant live reload
 for LaTeX and Typst builds, search, outline navigation, and a
@@ -95,7 +95,7 @@ Then just open any `.pdf` file. To make this the default PDF viewer:
 ```
 
 Also available as a VSIX from
-[GitHub Releases](https://github.com/ricardofrantz/vscode-pdf-next/releases):
+[GitHub Releases](https://github.com/machine-made/vscode-pdf-next/releases):
 
 ```bash
 code --install-extension pdf-preview-next-<version>.vsix --force
@@ -178,13 +178,13 @@ security as a feature:
 The codebase was security-audited with **Claude Opus 4.7** (April 2026), and
 release automation is hardened too: CI actions pinned by commit SHA and
 publishing gated behind a protected environment. Details in
-[SECURITY.md](https://github.com/ricardofrantz/vscode-pdf-next/blob/main/SECURITY.md).
+[SECURITY.md](https://github.com/machine-made/vscode-pdf-next/blob/main/SECURITY.md).
 
 ## Identity (same family as vscode-diff Next)
 
 | | **vscode-pdf Next** | **vscode-diff Next** |
 | -- | ------------------- | -------------------- |
-| Repository | `ricardofrantz/vscode-pdf-next` | `ricardofrantz/vscode-diff-next` |
+| Repository | `machine-made/vscode-pdf-next` | `machine-made/vscode-diff-next` |
 | Display name | `vscode-pdf Next` | `vscode-diff Next` |
 | Package name | `pdf-preview-next` | `diff-next` |
 | Install id | `RicardoFrantz.pdf-preview-next` | `RicardoFrantz.diff-next` |
@@ -212,7 +212,7 @@ it stays small, fast, and auditable.
 ## Contributing & development
 
 Issues and PRs are welcome at
-[ricardofrantz/vscode-pdf-next](https://github.com/ricardofrantz/vscode-pdf-next).
+[machine-made/vscode-pdf-next](https://github.com/machine-made/vscode-pdf-next).
 See [docs/RELEASING.md](docs/RELEASING.md) for building from source and the
 release process, and [docs/MAINTENANCE.md](docs/MAINTENANCE.md) for the
 maintenance playbook.
