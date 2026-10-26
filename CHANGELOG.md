@@ -7,7 +7,7 @@ The viewer behaves as in 2.5.1.
 - **The README has a disclaimer section, and LICENSE names the current
   maintainer.** The disclaimer says that the extension comes without warranty
   and that it is not affiliated with Microsoft or Mozilla. LICENSE puts
-  "Copyright (c) 2026 Ricardo A. S. Frantz" above the notice of the original
+  "Copyright (c) 2026 Ricardo Frantz" above the notice of the original
   author, tomoki1207. `package.json` now declares the MIT licence.
 - **The package no longer ships the CMYK ICC colour profile.** PDF.js reads
   the profile in `lib/pdfjs/iccs` only through the qcms WebAssembly module,

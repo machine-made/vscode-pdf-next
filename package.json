@@ -36,10 +36,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ricardofrantz/vscode-pdf-next.git"
+    "url": "https://github.com/machine-made/vscode-pdf-next.git"
   },
   "bugs": {
-    "url": "https://github.com/ricardofrantz/vscode-pdf-next/issues"
+    "url": "https://github.com/machine-made/vscode-pdf-next/issues"
   },
   "capabilities": {
     "untrustedWorkspaces": {

@@ -34,7 +34,7 @@ Create the Azure DevOps PAT with **Marketplace → Manage**, organization
 **All accessible organizations**, then:
 
 ```bash
-gh secret set VSCE_PAT -R ricardofrantz/vscode-pdf-next
+gh secret set VSCE_PAT -R machine-made/vscode-pdf-next
 ```
 
 ## Release workflow guardrails
