@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.6.0
+
+- Added **Open in pdf-next**: right-click a PDF, Markdown or image file in the Explorer or on its editor tab to open it in the pdf-next app; several selected files open in one launch
+- Added an Open in pdf-next button to the PDF preview title bar (`pdf-preview.pdfNext.showInTitleBar`), and an opt-in one for Markdown editors (`pdf-preview.pdfNext.showInMarkdownTitleBar`)
+- Added `pdf-preview.pdfNext.path`; without it the extension finds pdf-next on `PATH` and in the folders its installers use on Windows, macOS and Linux
+- Edited files are saved before they open in pdf-next (`pdf-preview.pdfNext.saveBeforeOpen`); files in a WSL window open through `\\wsl.localhost`
+- pdf-next starts without a shell, like the print commands
+- When pdf-next is missing, a message offers the download page or the path setting
+- The extension is now "vscode-pdf Next by machine-made"; the Marketplace id `RicardoFrantz.pdf-preview-next` is unchanged
+- Releases also publish to Open VSX when an `OVSX_PAT` secret is set
+- Updated eslint, typescript-eslint, prettier, esbuild and Node types
+
 ## 2.5.2 (2026/10/11)
 
 The viewer behaves as in 2.5.1.

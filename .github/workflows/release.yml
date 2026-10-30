@@ -223,3 +223,14 @@ jobs:
           fi
           VSIX="$(ls pdf-preview-next-*.vsix | head -n 1)"
           ./node_modules/.bin/vsce publish --packagePath "$VSIX" -p "$VSCE_PAT"
+
+      - name: Publish to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::warning::OVSX_PAT is not configured; skipped Open VSX. Add an open-vsx.org access token for the RicardoFrantz namespace as a secret named OVSX_PAT."
+            exit 0
+          fi
+          VSIX="$(ls pdf-preview-next-*.vsix | head -n 1)"
+          ./node_modules/.bin/ovsx publish --packagePath "$VSIX" -p "$OVSX_PAT"

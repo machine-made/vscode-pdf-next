@@ -1,10 +1,13 @@
 {
   "name": "pdf-preview-next",
-  "displayName": "vscode-pdf Next",
-  "description": "Modern successor to vscode-pdf: fast, secure PDF viewing in VS Code with true dark mode, the latest PDF.js (6.4.299) in a real worker thread, live reload for LaTeX/Typst including WSL, search, outline, and reliable preview state.",
-  "version": "2.5.2",
+  "displayName": "vscode-pdf Next by machine-made",
+  "description": "Fast, secure PDF viewing in VS Code by machine-made: true dark mode, the latest PDF.js (6.4.299) in a real worker thread, live reload for LaTeX/Typst including WSL, search, outline, reliable preview state, and one right-click to open PDFs and Markdown in the pdf-next app.",
+  "version": "2.6.0",
   "packageManager": "bun@1.3.13",
   "publisher": "RicardoFrantz",
+  "author": {
+    "name": "machine-made"
+  },
   "license": "MIT",
   "engines": {
     "vscode": "^1.95.0",
@@ -27,7 +30,9 @@
     "dark-mode",
     "dark mode",
     "night mode",
-    "dark theme"
+    "dark theme",
+    "markdown",
+    "pdf-next"
   ],
   "icon": "icon.png",
   "galleryBanner": {
@@ -87,6 +92,12 @@
       {
         "command": "pdf-preview.resetViewState",
         "title": "vscode-pdf Next: Reset View State"
+      },
+      {
+        "command": "pdf-preview.openInPdfNext",
+        "title": "Open in pdf-next",
+        "category": "vscode-pdf Next",
+        "icon": "$(link-external)"
       }
     ],
     "configuration": {
@@ -204,8 +215,65 @@
           "scope": "resource",
           "default": "",
           "restricted": true
+        },
+        "pdf-preview.pdfNext.path": {
+          "markdownDescription": "Path to the [pdf-next](https://github.com/machine-made/pdf-next) app used by **Open in pdf-next**. Leave empty to find it on `PATH` and in the usual install folders. On macOS you can give the `.app` bundle.",
+          "type": "string",
+          "scope": "machine",
+          "default": "",
+          "restricted": true
+        },
+        "pdf-preview.pdfNext.saveBeforeOpen": {
+          "markdownDescription": "Save an edited file before **Open in pdf-next** opens it, because pdf-next reads the file on disk.",
+          "type": "boolean",
+          "scope": "resource",
+          "default": true
+        },
+        "pdf-preview.pdfNext.showInTitleBar": {
+          "markdownDescription": "Show the **Open in pdf-next** button in the title bar of the PDF preview.",
+          "type": "boolean",
+          "default": true
+        },
+        "pdf-preview.pdfNext.showInMarkdownTitleBar": {
+          "markdownDescription": "Show the **Open in pdf-next** button in the title bar of Markdown editors. The command is always on the right-click menus.",
+          "type": "boolean",
+          "default": false
         }
       }
+    },
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "pdf-preview.openInPdfNext",
+          "when": "!explorerResourceIsFolder && resourceExtname =~ /^\\.(pdf|md|markdown|png|jpe?g|webp|avif|gif|bmp)$/i",
+          "group": "navigation@20"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "pdf-preview.openInPdfNext",
+          "when": "resourceExtname =~ /^\\.(pdf|md|markdown|png|jpe?g|webp|avif|gif|bmp)$/i",
+          "group": "1_open@20"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "pdf-preview.openInPdfNext",
+          "when": "activeCustomEditorId == pdf-preview-next.preview && config.pdf-preview.pdfNext.showInTitleBar",
+          "group": "navigation@20"
+        },
+        {
+          "command": "pdf-preview.openInPdfNext",
+          "when": "resourceLangId == markdown && config.pdf-preview.pdfNext.showInMarkdownTitleBar",
+          "group": "navigation@20"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "pdf-preview.openInPdfNext",
+          "when": "resourceExtname =~ /^\\.(pdf|md|markdown|png|jpe?g|webp|avif|gif|bmp)$/i"
+        }
+      ]
     }
   },
   "scripts": {
@@ -229,16 +297,17 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "@types/node": "^22.19.17",
+    "@types/node": "^22.20.5",
     "@types/vscode": "^1.95.0",
-    "@typescript-eslint/eslint-plugin": "^8.59.0",
-    "@typescript-eslint/parser": "^8.59.0",
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
+    "@typescript-eslint/parser": "^8.72.1",
     "@vscode/test-electron": "3.1.0",
     "@vscode/vsce": "3.9.2",
-    "esbuild": "0.28.1",
-    "eslint": "^9.39.4",
+    "esbuild": "0.28.2",
+    "eslint": "^9.39.5",
     "globals": "^15.15.0",
-    "prettier": "^3.8.3",
+    "ovsx": "1.3.0",
+    "prettier": "^3.9.10",
     "typescript": "^5.9.3"
   },
   "overrides": {

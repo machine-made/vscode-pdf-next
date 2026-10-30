@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { openInPdfNext } from './openInPdfNext';
 import { PdfCustomProvider } from './pdfProvider';
 
 export const PDF_WEBVIEW_OPTIONS = {
@@ -74,6 +75,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('pdf-preview.resetViewState', async () => {
       await provider.resetViewStateForActivePreview();
     }),
+    vscode.commands.registerCommand('pdf-preview.openInPdfNext', openInPdfNext),
   );
 }
 

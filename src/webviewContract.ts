@@ -11,13 +11,7 @@ export interface PersistedViewState {
 
 /** Every settings value the page-mode wheel accepts; see lib/pageMode.mjs. */
 export type PageModeTheme =
-  | 'auto'
-  | 'light'
-  | 'dark'
-  | 'night'
-  | 'reader'
-  | 'dark-pages'
-  | 'inverted';
+  'auto' | 'light' | 'dark' | 'night' | 'reader' | 'dark-pages' | 'inverted';
 
 export type ViewerToHostMessage =
   | {
