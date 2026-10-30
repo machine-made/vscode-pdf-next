@@ -18,9 +18,10 @@ reviews:
 
   auto_review:
     enabled: true               # every PR; the central config is manual only (jac decision 0021)
+    auto_pause_after_reviewed_commits: 0   # and every push, without pausing
     drafts: false               # sessions open PRs ready; drafts wait
     base_branches: [".*"]
-    ignore_title_keywords: ["wip", "[skip review]"]
+    ignore_title_keywords: ["[wip]", "[skip review]"]
     # Bot dependency bumps: CI and cargo-deny check them; save the allowance
     ignore_usernames: ["dependabot[bot]", "renovate[bot]"]
 
