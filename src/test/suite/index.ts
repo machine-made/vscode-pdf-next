@@ -775,6 +775,21 @@ async function assertFileWatcherReloadDoesNotStealFocus(
 }
 
 export async function run(): Promise<void> {
+  try {
+    await runSuite();
+  } catch (error) {
+    // GitHub shows ::error:: lines as annotations, which stay readable
+    // through the API when the job log is not.
+    const text =
+      error instanceof Error ? (error.stack ?? error.message) : String(error);
+    console.error(
+      `::error title=VS Code tests::${text.replace(/\r?\n/g, '%0A')}`,
+    );
+    throw error;
+  }
+}
+
+async function runSuite(): Promise<void> {
   assertWebviewContract();
   assertLinkAndPrintHelpers();
   assertWebviewHtmlHooks();
@@ -898,6 +913,10 @@ export async function run(): Promise<void> {
       'pdf-preview.appearance.pageGap': 'normal',
       'pdf-preview.copy.autoCopySelection': false,
       'pdf-preview.printCommand': '',
+      'pdf-preview.pdfNext.path': '',
+      'pdf-preview.pdfNext.saveBeforeOpen': true,
+      'pdf-preview.pdfNext.showInTitleBar': true,
+      'pdf-preview.pdfNext.showInMarkdownTitleBar': false,
     },
   );
 
@@ -913,6 +932,7 @@ export async function run(): Promise<void> {
   );
   assert.deepStrictEqual([...commandIds].sort(), [
     'pdf-preview.clearPageMode',
+    'pdf-preview.openInPdfNext',
     'pdf-preview.openPreview',
     'pdf-preview.openSource',
     'pdf-preview.print',
@@ -929,6 +949,7 @@ export async function run(): Promise<void> {
   if (activationEvents !== undefined) {
     for (const expectedEvent of [
       'onCommand:pdf-preview.clearPageMode',
+      'onCommand:pdf-preview.openInPdfNext',
       'onCommand:pdf-preview.openPreview',
       'onCommand:pdf-preview.openSource',
       'onCommand:pdf-preview.print',
