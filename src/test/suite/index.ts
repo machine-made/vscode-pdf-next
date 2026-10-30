@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { writeFileSync } from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { disposeAll } from '../../disposable';
@@ -12,6 +13,7 @@ import {
   webviewLocalResourceRoots,
 } from '../../pdfPreview';
 import { parsePrintCommand } from '../../print';
+import { assertPdfNextLauncher, writeStubPdfNext } from './pdfNext';
 import {
   parseViewerToHostMessage,
   persistedViewStateOrUndefined,
@@ -593,6 +595,65 @@ async function assertRuntimeConfigurationScope(
   }
 }
 
+async function assertOpenInPdfNext(
+  extension: vscode.Extension<unknown>,
+): Promise<void> {
+  const contributes = extension.packageJSON.contributes;
+  const menus = contributes.menus;
+  const opens = (entry: { command: string }) =>
+    entry.command === 'pdf-preview.openInPdfNext';
+  for (const menu of [
+    'explorer/context',
+    'editor/title/context',
+    'editor/title',
+    'commandPalette',
+  ]) {
+    assert.ok(menus[menu].some(opens), `${menu} offers Open in pdf-next`);
+  }
+  const explorerWhen: string = menus['explorer/context'].find(opens).when;
+  assert.ok(explorerWhen.startsWith('!explorerResourceIsFolder && '));
+  assert.ok(explorerWhen.includes('(pdf|md|markdown|'), explorerWhen);
+  const settings = vscode.workspace.getConfiguration('pdf-preview.pdfNext');
+  assert.strictEqual(settings.get('path'), '');
+  assert.strictEqual(settings.get('saveBeforeOpen'), true);
+  assert.strictEqual(settings.get('showInTitleBar'), true);
+  assert.strictEqual(settings.get('showInMarkdownTitleBar'), false);
+  assert.strictEqual(
+    contributes.configuration.properties['pdf-preview.pdfNext.path'].scope,
+    'machine',
+  );
+
+  if (process.platform === 'win32') {
+    return;
+  }
+  const stub = writeStubPdfNext();
+  const folder = path.dirname(stub.binary);
+  const first = path.join(folder, 'notes one.md');
+  const second = path.join(folder, 'paper.pdf');
+  writeFileSync(first, '# Notes\n');
+  writeFileSync(second, minimalPdf());
+  await settings.update('path', stub.binary, vscode.ConfigurationTarget.Global);
+  try {
+    await vscode.commands.executeCommand(
+      'pdf-preview.openInPdfNext',
+      vscode.Uri.file(first),
+      [vscode.Uri.file(first), vscode.Uri.file(second)],
+    );
+    const deadline = Date.now() + 10_000;
+    let recorded = stub.recordedArguments();
+    while (!recorded && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      recorded = stub.recordedArguments();
+    }
+    assert.deepStrictEqual(recorded, [
+      vscode.Uri.file(first).fsPath,
+      vscode.Uri.file(second).fsPath,
+    ]);
+  } finally {
+    await settings.update('path', undefined, vscode.ConfigurationTarget.Global);
+  }
+}
+
 async function waitForViewerEvent(
   fixtureUri: vscode.Uri,
   timeoutMs: number,
@@ -714,18 +775,37 @@ async function assertFileWatcherReloadDoesNotStealFocus(
 }
 
 export async function run(): Promise<void> {
+  try {
+    await runSuite();
+  } catch (error) {
+    // GitHub shows ::error:: lines as annotations, which stay readable
+    // through the API when the job log is not.
+    const text =
+      error instanceof Error ? (error.stack ?? error.message) : String(error);
+    console.error(
+      `::error title=VS Code tests::${text.replace(/\r?\n/g, '%0A')}`,
+    );
+    throw error;
+  }
+}
+
+async function runSuite(): Promise<void> {
   assertWebviewContract();
   assertLinkAndPrintHelpers();
   assertWebviewHtmlHooks();
   assertDisposeAllKeepsDraining();
   assertTruncatedPdfIsRecognised();
+  assertPdfNextLauncher();
   await assertViewStateResetHelper();
 
   const extension = vscode.extensions.all.find(
     ({ packageJSON }) => packageJSON.name === 'pdf-preview-next',
   );
   assert.ok(extension, 'PDF Preview Next extension should be registered.');
-  assert.strictEqual(extension.packageJSON.displayName, 'vscode-pdf Next');
+  assert.strictEqual(
+    extension.packageJSON.displayName,
+    'vscode-pdf Next by machine-made',
+  );
   // activate() registers the internal test commands. Opening a custom editor
   // starts the activation, but vscode.openWith can return before it ends.
   // VS Code 1.141 on macOS then reported that
@@ -733,6 +813,7 @@ export async function run(): Promise<void> {
   await extension.activate();
   await assertCheckedInFixtures(extension);
   await assertRuntimeConfigurationScope(extension);
+  await assertOpenInPdfNext(extension);
 
   const sidebarDefault = vscode.workspace
     .getConfiguration('pdf-preview')
@@ -832,6 +913,10 @@ export async function run(): Promise<void> {
       'pdf-preview.appearance.pageGap': 'normal',
       'pdf-preview.copy.autoCopySelection': false,
       'pdf-preview.printCommand': '',
+      'pdf-preview.pdfNext.path': '',
+      'pdf-preview.pdfNext.saveBeforeOpen': true,
+      'pdf-preview.pdfNext.showInTitleBar': true,
+      'pdf-preview.pdfNext.showInMarkdownTitleBar': false,
     },
   );
 
@@ -847,6 +932,7 @@ export async function run(): Promise<void> {
   );
   assert.deepStrictEqual([...commandIds].sort(), [
     'pdf-preview.clearPageMode',
+    'pdf-preview.openInPdfNext',
     'pdf-preview.openPreview',
     'pdf-preview.openSource',
     'pdf-preview.print',
@@ -863,6 +949,7 @@ export async function run(): Promise<void> {
   if (activationEvents !== undefined) {
     for (const expectedEvent of [
       'onCommand:pdf-preview.clearPageMode',
+      'onCommand:pdf-preview.openInPdfNext',
       'onCommand:pdf-preview.openPreview',
       'onCommand:pdf-preview.openSource',
       'onCommand:pdf-preview.print',

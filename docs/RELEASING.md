@@ -18,7 +18,8 @@ Pushing a version tag publishes automatically via GitHub Actions:
 
 3. The **Release** workflow verifies, packages the VSIX, creates/updates the
    GitHub Release, then publishes to the VS Code Marketplace (`VSCE_PAT`
-   secret — required). The extension is not published to Open VSX.
+   secret — required) and to Open VSX (`OVSX_PAT` secret — optional; the
+   step warns and skips without it).
 
 Manual dry-run (no publish): **Actions → Release → Run workflow** with
 `dry_run=true`. Manual publish without a new tag: `dry_run=false` and
@@ -29,12 +30,22 @@ Manual dry-run (no publish): **Actions → Release → Run workflow** with
 | Secret     | Where                                     | Purpose                      |
 | ---------- | ----------------------------------------- | ---------------------------- |
 | `VSCE_PAT` | Repo or `marketplace-publish` environment | Marketplace Manage scope PAT |
+| `OVSX_PAT` | Repo or `marketplace-publish` environment | Open VSX token, optional     |
 
 Create the Azure DevOps PAT with **Marketplace → Manage**, organization
 **All accessible organizations**, then:
 
 ```bash
 gh secret set VSCE_PAT -R machine-made/vscode-pdf-next
+```
+
+Open VSX takes its namespace from `publisher` in `package.json`, so the
+extension appears there as `RicardoFrantz.pdf-preview-next`. Sign in at
+open-vsx.org, sign the publisher agreement, create the `RicardoFrantz`
+namespace once (`ovsx create-namespace RicardoFrantz -p <token>`), then:
+
+```bash
+gh secret set OVSX_PAT -R machine-made/vscode-pdf-next
 ```
 
 ## Release workflow guardrails
