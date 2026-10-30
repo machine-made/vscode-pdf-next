@@ -1,0 +1,293 @@
+# vscode-pdf-next: CodeRabbit reviews every pull request automatically.
+# This is machine-made's central config (machine-made/coderabbit) with
+# automatic reviews and their status turned on: a repo file replaces the
+# central one as a whole, so the rest is copied from it. vscode-pdf-next is public,
+# where CodeRabbit is free.
+# Schema: https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+tone_instructions: "Terse. Real defects first, the most severe first. No praise, no filler. Plain words: one idea per sentence, active voice."
+
+reviews:
+  profile: chill                # quiet | chill | assertive
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true           # say why when a review is skipped
+  collapse_walkthrough: true
+  sequence_diagrams: false
+
+  auto_review:
+    enabled: true               # every PR; the central config is manual only (jac decision 0021)
+    drafts: false               # sessions open PRs ready; drafts wait
+    base_branches: [".*"]
+    ignore_title_keywords: ["wip", "[skip review]"]
+    # Bot dependency bumps: CI and cargo-deny check them; save the allowance
+    ignore_usernames: ["dependabot[bot]", "renovate[bot]"]
+
+  # Generated, vendored and binary files: no review
+  path_filters:
+    - "!lib/pdfjs/**"
+    - "!.beads/**"
+    - "!**/*.lock"
+    - "!**/package-lock.json"
+    - "!**/pnpm-lock.yaml"
+    - "!**/bun.lockb"
+    - "!**/node_modules/**"
+    - "!**/dist/**"
+    - "!**/out/**"
+    - "!**/target/**"
+    - "!**/*.min.js"
+    - "!**/*.map"
+    - "!**/*.ipynb"
+    - "!**/*.h5"
+    - "!**/*.hdf5"
+    - "!**/*.npz"
+    - "!**/*.npy"
+    - "!**/*.vtk"
+    - "!**/*.vtu"
+    - "!**/*.pdf"
+    - "!**/*.woff"
+    - "!**/*.woff2"
+    - "!**/*.otf"
+    - "!**/*.ttf"
+    - "!data/**"
+    - "!output/**"
+    - "!results/**"
+
+  path_instructions:
+    - path: "**/*.rs"
+      instructions: |
+        Rust, edition 2024. Flag: unwrap, expect or panic in library code
+        (tests, benches and examples may use them); any `unsafe` (crates
+        use forbid(unsafe_code); an FFI parity harness is the only
+        exception and needs a SAFETY comment); lossy `as` casts in
+        numerics; float `==`; needless clones and allocations in hot
+        loops; a public API change with no CHANGELOG entry. Errors return
+        Result with a message that says what failed, why and what to do
+        next. Inside #[cfg(test)] modules: assert numerical results with
+        explicit tolerances, each with its reason; parity tests compare with
+        output of the original; flag a deleted, skipped or ignored test, a
+        loosened tolerance and goldens regenerated from the new code.
+    - path: "**/Cargo.toml"
+      instructions: |
+        Crate manifest. Flag: edition other than 2024; no rust-version;
+        repository or homepage outside github.com/machine-made; a missing
+        licence, or a port whose licence is not compatible with its
+        original; wildcard or git dependencies in a published crate.
+    - path: "**/*.ts"
+      instructions: &typescript |
+        TypeScript, strict. Flag: `any`, non-null assertions with no
+        reason, floating promises, unhandled rejections, sync file I/O on
+        a hot path. VS Code extensions: every disposable goes to
+        context.subscriptions; activation does no work that can wait;
+        webviews use a CSP with a nonce and never put untrusted text in
+        innerHTML; file URIs are checked for path traversal. Servers
+        (Bun, Node): validate input at the boundary, bind to localhost by
+        default, never log secrets.
+    - path: "**/*.tsx"
+      instructions: *typescript
+    - path: "**/*.js"
+      instructions: *typescript
+    - path: "**/*.mjs"
+      instructions: *typescript
+    - path: "**/*.jsx"
+      instructions: *typescript
+    - path: "**/package.json"
+      instructions: |
+        Package manifest. Flag: repository, homepage or bugs outside
+        github.com/machine-made; `latest` or open ranges in a published
+        package; install scripts with no need.
+    - path: "**/*.py"
+      instructions: |
+        Python 3.14, strictly typed (basedpyright), ruff clean. Flag:
+        numerical errors (wrong axis, silent dtype downcasts, float
+        equality, in-place aliasing of NumPy arrays), missing or wrong
+        type hints, old syntax (use `X | None`, built-in generics,
+        pathlib). Comments and docstrings use ASD-STE100: short
+        sentences, active voice, one instruction per sentence.
+    - path: "**/*.cu"
+      instructions: &cuda |
+        CUDA 13 and C++23. Flag: out-of-bounds thread indexing, missing
+        synchronisation, uncoalesced memory access, unchecked CUDA API
+        errors, host and device pointer confusion, a hard-coded
+        architecture outside 80, 86 and 90.
+    - path: "**/*.cuh"
+      instructions: *cuda
+    - path: "**/*.cpp"
+      instructions: &cpp |
+        C++23. Flag: raw new and delete, undefined behaviour (signed
+        overflow, out-of-bounds access, strict aliasing), pointer and size
+        pairs where std::span or std::mdspan fits, a fallible return with
+        no [[nodiscard]], a header-only library that gains a source file.
+    - path: "**/*.cc"
+      instructions: *cpp
+    - path: "**/*.cxx"
+      instructions: *cpp
+    - path: "**/*.hpp"
+      instructions: *cpp
+    - path: "**/*.hh"
+      instructions: *cpp
+    - path: "**/*.hxx"
+      instructions: *cpp
+    - path: "**/*.h"
+      instructions: *cpp
+    - path: "**/*.f90"
+      instructions: &fortran |
+        Modern Fortran. Flag: missing `implicit none`, missing `intent`,
+        array bounds and index-order mistakes, uninitialised variables,
+        non-portable kinds (use iso_fortran_env), and race conditions in
+        OpenMP or MPI regions.
+    - path: "**/*.F90"
+      instructions: *fortran
+    - path: "**/*.f"
+      instructions: *fortran
+    - path: "**/*.F"
+      instructions: *fortran
+    - path: "**/*.f95"
+      instructions: *fortran
+    - path: "**/*.F95"
+      instructions: *fortran
+    - path: "**/*.f03"
+      instructions: *fortran
+    - path: "**/*.F03"
+      instructions: *fortran
+    - path: "**/*.f08"
+      instructions: *fortran
+    - path: "**/*.F08"
+      instructions: *fortran
+    - path: "**/*.rb"
+      instructions: |
+        Homebrew casks and formulae. Flag: a url change with no sha256
+        change; a `verified:` value that does not match the url; a
+        missing or wrong livecheck; a version not read from the url;
+        anything `brew style` or `brew audit --strict` rejects; a url,
+        homepage or tap name outside machine-made.
+    - path: ".github/workflows/**"
+      instructions: |
+        GitHub Actions. Flag: an action not pinned to a full commit SHA
+        (keep the version as a comment); no top-level `permissions:`, or
+        more than the job needs; pull_request_target or workflow_run that
+        checks out or runs PR code; untrusted event text (titles, bodies,
+        branch names) used directly in `run:`; secrets given to steps that
+        do not need them; a publish step that uses a long-lived token
+        where the registry offers trusted publishing.
+    - path: "**/tests/**"
+      instructions: &tests |
+        Tests assert numerical results with explicit tolerances, and each
+        tolerance states its reason. A port's parity tests compare with
+        output of the original, never with output of the port itself.
+        Flag: a deleted, skipped or ignored test; a tolerance loosened in
+        the same PR that changes the code it checks; goldens regenerated
+        from the new code; only the happy path covered.
+    - path: "**/test_*.py"
+      instructions: *tests
+    - path: "**/*_test.py"
+      instructions: *tests
+    - path: "**/*_test.rs"
+      instructions: *tests
+    - path: "**/*.test.ts"
+      instructions: *tests
+    - path: "**/*.test.tsx"
+      instructions: *tests
+    - path: "**/*.spec.ts"
+      instructions: *tests
+    - path: "**/*.spec.tsx"
+      instructions: *tests
+    - path: "**/*.test.js"
+      instructions: *tests
+    - path: "**/*.spec.js"
+      instructions: *tests
+    - path: "**/*.test.mjs"
+      instructions: *tests
+    - path: "**/*.spec.mjs"
+      instructions: *tests
+    - path: "**/*.test.jsx"
+      instructions: *tests
+    - path: "**/*.spec.jsx"
+      instructions: *tests
+    - path: "**/*.md"
+      instructions: &docs |
+        Docs in ASD-STE100: short sentences, active voice, one idea per
+        sentence. Flag: a claim of speed, accuracy or parity with no
+        script, test or report behind it; install commands or links that
+        point at an old owner instead of machine-made; internal ids, local
+        paths, costs or personal names (author credits in CITATION.cff,
+        LICENSE and NOTICE are fine); marketing words.
+    - path: "**/LICENSE"
+      instructions: *docs
+    - path: "**/NOTICE"
+      instructions: *docs
+    - path: "**/*.cff"
+      instructions: *docs
+
+  pre_merge_checks:
+    title:
+      mode: warning
+      requirements: "Conventional Commits: type, an optional (scope), an optional ! for a breaking change, then ': subject'. Imperative mood, no period at the end."
+    description:
+      mode: warning
+    docstrings:
+      mode: "off"               # rustdoc and ruff lints check docs in CI
+    custom_checks:
+      - name: "Proof"
+        mode: warning
+        instructions: |
+          The PR body has a Verification section. It names each check, how
+          it ran and its numbers. Every claim of speed, accuracy or parity
+          in the diff or the body has a script, a test or a report behind
+          it. Fail if either is missing.
+      - name: "Tests not weakened"
+        mode: error
+        instructions: |
+          Fail if the PR deletes, skips or ignores a test, or loosens a
+          tolerance, and the PR body gives no measured reason (the numbers
+          before and after). Also fail if a deleted test has no replacement
+          test and no evidence that other tests cover the same behaviour.
+      - name: "Public text"
+        mode: warning
+        instructions: |
+          Fail if a file, the PR title or the PR body contains an internal
+          task id, a local path (/home/, /tmp/, a scratchpad), a token or
+          money cost, a secret, or a personal name. Author fields in
+          CITATION.cff, LICENSE and NOTICE are exempt.
+
+  tools:
+    ruff:
+      enabled: true
+    clippy:
+      enabled: true
+    biome:
+      enabled: true
+    eslint:
+      enabled: true
+    rubocop:
+      enabled: true
+    shellcheck:
+      enabled: true
+    actionlint:
+      enabled: true
+    zizmor:
+      enabled: true
+    gitleaks:
+      enabled: true
+    osvScanner:
+      enabled: true
+    cppcheck:
+      enabled: true
+    github-checks:
+      enabled: true
+    markdownlint:
+      enabled: false
+    languagetool:
+      enabled: false
+
+chat:
+  auto_reply: false             # answer only when mentioned
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "**/AGENTS.md"
+  learnings:
+    scope: auto

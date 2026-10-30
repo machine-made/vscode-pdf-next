@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://cubic.dev/schema/cubic-repository-config.schema.json
+# vscode-pdf-next: cubic reviews every pull request automatically, up to its
+# 50,000-line ceiling. The vendored PDF.js and generated files are skipped.
+version: 1
+
+reviews:
+  enabled: true
+  sensitivity: medium
+  incremental_commits: true
+  check_drafts: false
+  custom_instructions: |
+    vscode-pdf-next is a VS Code extension that shows PDFs in a webview with
+    PDF.js and reloads them when the file changes. The webview runs under a
+    CSP with a nonce: no inline scripts or styles, never untrusted text in
+    innerHTML. Flag real defects first: disposables not added to
+    context.subscriptions, work at activation that can wait, unchecked file
+    URIs, leaks across reloads, and anything that breaks in VS Code for the
+    web or on Windows paths.
+  ignore:
+    files:
+      - 'lib/pdfjs/**'
+      - '.beads/**'
+      - '**/*.lock'
+      - '**/*.min.mjs'
+      - '**/*.min.js'
+      - '**/*.pdf'
+    max_changed_lines: 50000
