@@ -284,18 +284,6 @@ export function renderPdfPreviewHtml({
 <title>PDF Preview Next</title>
 <link rel="stylesheet" href="${pdfViewerStylesUri}">
 <link rel="stylesheet" href="${viewerStylesUri}">
-<style>
-@container (max-width: 600px) {
-  #pdf-toolbar .icon-button {
-    min-width: 22px;
-    padding-right: 2px;
-    padding-left: 2px;
-  }
-  #pdf-toolbar .toolbar-group {
-    gap: 2px;
-  }
-}
-</style>
 <script nonce="${nonce}">
 (() => {
   let startupError = '';

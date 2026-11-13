@@ -221,6 +221,18 @@ select {
   }
 }
 
+@container (max-width: 600px) {
+  #pdf-toolbar .icon-button {
+    min-width: 22px;
+    padding-right: 2px;
+    padding-left: 2px;
+  }
+
+  #pdf-toolbar .toolbar-group {
+    gap: 2px;
+  }
+}
+
 @container (max-width: 520px) {
   #pdf-toolbar {
     gap: 4px;
@@ -251,6 +263,8 @@ select {
 }
 
 @container (max-width: 420px) {
+  #historyBack,
+  #historyForward,
   #numPages,
   .toolbar-find,
   #zoomOut,
