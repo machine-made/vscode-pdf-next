@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Fixed pages redrawing and blurring while scrolling at fit-width on high-density displays: on the 40-page scrolling probe, redraws per page fell from 131.2 to 1.083 at 1200×800 and from 297.5 to 1.083 at 1800×1000; blurred frames fell from 18.58% and 93.63% to zero. The page canvas cap is now 33,554,432 pixels, holding 22.843 and 52.589 Mpixel after scrolling in those windows.
+- Fixed pages redrawing and blurring while scrolling at fit-width on high-density displays. The page canvas cap is now 33,554,432 pixels. On the 40-page scrolling probe at 1200×800, redraws per page fell from 131.2 to 1.083. Blurred frames fell from 18.58% to zero. At 1800×1000, redraws per page fell from 297.5 to 1.083. Blurred frames fell from 93.63% to zero. After scrolling, the viewer holds 22.843 Mpixel at 1200×800 and 52.589 Mpixel at 1800×1000.
 
 ## 2.6.0
 

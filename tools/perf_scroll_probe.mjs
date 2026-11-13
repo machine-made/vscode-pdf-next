@@ -35,6 +35,11 @@ function baselineSource(source) {
     1,
     'Canvas cap must match once',
   );
+  assert.match(
+    source,
+    /const MAX_CANVAS_PIXELS = 33_554_432;/,
+    'The shipped cap must be 33,554,432 pixels',
+  );
   // Decimal spelling also changes the unchanged baseline's source text.
   return source.replace(pattern, 'const MAX_CANVAS_PIXELS = 4194304;');
 }
