@@ -48,6 +48,44 @@ Manual smoke test after local install:
 - Resize the editor to medium and narrow split widths; confirm toolbar actions do not clip.
 - On macOS, confirm Print opens Preview/system viewer. On Linux, confirm `Print Directly` either submits to the default CUPS printer or falls back with a useful warning.
 
+## Scrolling probe
+
+Run `bun run test:perf` to compile the shipped webview, generate the deterministic
+40-page A4 fixture, and measure scrolling in headless Chromium. The probe uses
+the shipped HTML, CSP, and worker configuration with a local document bridge.
+It requires the pinned `playwright-core` development dependency and a cached
+Chromium browser; it does not download a PDF or start VS Code.
+
+Each window (1200×800 and 1800×1000 CSS pixels) gets five interleaved runs of
+the shipped cap and a served copy with the original 4,194,304-pixel cap. Both
+use a 1920×1080 screen, device scale 2, page-width zoom, and a 12-page scroll
+at 25 CSS pixels per animation frame (1500 pixels/s at 60 Hz).
+
+The table reports medians of these measurements:
+
+- `firstPageMs`: the first page duration reported by `viewer-ready`, which must
+  also confirm a real worker.
+- `redraws/page`: page-canvas insertions and backing width or height changes,
+  divided by the 12 distinct pages entered during the scroll.
+- `blurredFrames`: animation frames where any visible page region lacks canvas
+  coverage at least 95 percent of the device pixel density.
+- `frames`: animation frames sampled during the scroll; `blurred %` is the
+  blurred fraction expressed as a percentage.
+- `heldMpx`: the sum of all retained page-canvas backing areas in millions of
+  pixels after canvas changes have settled for 300 ms.
+
+The shipped build must stay at or below 1.5 redraws/page, 5 percent blurred
+frames, and 96 Mpixel held in both windows. Its median first-page duration
+must be at most 1.10 times the baseline median plus 50 ms. The baseline must
+reproduce more than 3 redraws/page and more than 10 percent blurred frames
+in both windows. The probe also checks that 12 pages entered the view and
+the scroll ended on page 13 or later.
+
+The fixture and JSON report are generated under `.work/perf/` and are not
+committed. For diagnosis after compilation and fixture generation, run
+`node tools/perf_scroll_probe.mjs --runs 1 --window 1800x1000`; the full
+`test:perf` command retains five runs and asserts every limit.
+
 ## Updating dependencies
 
 1. Use `bun outdated` to decide whether updates are routine or major.
