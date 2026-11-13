@@ -1,11 +1,9 @@
-# vscode-pdf Next by machine-made — fast, secure PDF viewing in VS Code
-
-[![CI](https://github.com/machine-made/vscode-pdf-next/actions/workflows/ci.yml/badge.svg)](https://github.com/machine-made/vscode-pdf-next/actions/workflows/ci.yml)
-[![Marketplace](https://img.shields.io/badge/marketplace-vscode--pdf--next-blue)](https://marketplace.visualstudio.com/items?itemName=RicardoFrantz.pdf-preview-next)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+[![CI](https://github.com/machine-made/vscode-pdf-next/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/machine-made/vscode-pdf-next/actions/workflows/ci.yml)
+[![Marketplace](https://vsmarketplacebadges.dev/version/RicardoFrantz.pdf-preview-next.svg)](https://marketplace.visualstudio.com/items?itemName=RicardoFrantz.pdf-preview-next)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![GitHub](https://img.shields.io/badge/github-vscode--pdf--next-blue)](https://github.com/machine-made/vscode-pdf-next)
 
-Open PDFs right inside VS Code — with **dark mode**, instant live reload
+`vscode-pdf-next` opens PDFs right inside VS Code, with **dark mode**, instant live reload
 for LaTeX and Typst builds, search, outline navigation, and a
 security-hardened PDF.js 6 runtime.
 
