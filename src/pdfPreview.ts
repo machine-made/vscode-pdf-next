@@ -77,6 +77,12 @@ export interface PdfPreviewHtmlOptions {
 
 export const PDF_VIEWER_BODY = `<body>
   <svg style="display: none;">
+    <symbol id="icon-history-back" viewBox="0 0 16 16" fill="none">
+      <path d="M13 8H3M7 4L3 8L7 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="icon-history-forward" viewBox="0 0 16 16" fill="none">
+      <path d="M3 8H13M9 4L13 8L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
     <symbol id="icon-chevron-left" viewBox="0 0 16 16" fill="none">
       <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
@@ -131,6 +137,14 @@ export const PDF_VIEWER_BODY = `<body>
   <div id="pdf-root">
     <header id="pdf-toolbar" role="toolbar" aria-label="PDF controls">
       <div class="toolbar-group">
+        <button id="historyBack" class="icon-button" type="button" title="Back (Alt+Left)" aria-label="Back (Alt+Left)" disabled>
+          <svg class="icon" width="16" height="16"><use href="#icon-history-back"/></svg>
+          <span class="label">Back</span>
+        </button>
+        <button id="historyForward" class="icon-button" type="button" title="Forward (Alt+Right)" aria-label="Forward (Alt+Right)" disabled>
+          <svg class="icon" width="16" height="16"><use href="#icon-history-forward"/></svg>
+          <span class="label">Forward</span>
+        </button>
         <button id="previous" class="icon-button" type="button" title="Previous page" aria-label="Previous page">
           <svg class="icon" width="16" height="16"><use href="#icon-chevron-left"/></svg>
           <span class="label">Prev</span>
@@ -270,6 +284,18 @@ export function renderPdfPreviewHtml({
 <title>PDF Preview Next</title>
 <link rel="stylesheet" href="${pdfViewerStylesUri}">
 <link rel="stylesheet" href="${viewerStylesUri}">
+<style>
+@container (max-width: 600px) {
+  #pdf-toolbar .icon-button {
+    min-width: 22px;
+    padding-right: 2px;
+    padding-left: 2px;
+  }
+  #pdf-toolbar .toolbar-group {
+    gap: 2px;
+  }
+}
+</style>
 <script nonce="${nonce}">
 (() => {
   let startupError = '';

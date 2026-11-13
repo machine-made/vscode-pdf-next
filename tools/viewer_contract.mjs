@@ -7,6 +7,95 @@ import {
   pageColorsForPageMode,
   pageModeLabel,
 } from '../lib/pageMode.mjs';
+import { createViewHistory } from '../lib/viewHistory.mjs';
+
+function assertViewHistory(context) {
+  const history = createViewHistory();
+  const A = { page: 1, top: 12, left: 3 };
+  const B = { page: 4, top: 2500, left: 20 };
+  const C = { page: 8, top: 6000, left: 0 };
+  const D = { page: 2, top: 800, left: 10 };
+  const flags = () => [history.canGoBack(), history.canGoForward()];
+  assert.deepEqual(
+    [history.back(A), history.forward(A), ...flags()],
+    [null, null, false, false],
+    `${context}: empty history must disable both buttons.`,
+  );
+  history.push(A);
+  history.push(B);
+  assert.deepEqual(flags(), [true, false], `${context}: push must enable Back.`);
+  assert.deepEqual(
+    [history.back(C), ...flags()],
+    [B, true, true],
+    `${context}: Back must restore B and enable both buttons.`,
+  );
+  assert.deepEqual(
+    [history.back(B), ...flags()],
+    [A, false, true],
+    `${context}: Back at A must disable Back and enable Forward.`,
+  );
+  assert.deepEqual(
+    [history.forward(A), ...flags()],
+    [B, true, true],
+    `${context}: Forward must restore B and keep both buttons enabled.`,
+  );
+  history.push(D);
+  assert.deepEqual(
+    [...flags(), history.forward(D)],
+    [true, false, null],
+    `${context}: a new push must drop all forward entries and disable Forward.`,
+  );
+  history.back(D);
+  history.clear();
+  assert.deepEqual(
+    [history.back(D), history.forward(D), ...flags()],
+    [null, null, false, false],
+    `${context}: clear must empty both directions and disable both buttons.`,
+  );
+  for (let page = 1; page <= 101; page += 1) {
+    history.push({ page, top: page * 100, left: 0 });
+  }
+  const positions = [];
+  let position = { page: 102, top: 10200, left: 0 };
+  while ((position = history.back(position))) {
+    positions.push(position);
+  }
+  assert.deepEqual(
+    [positions, ...flags()],
+    [
+      Array.from({ length: 100 }, (_, index) => ({
+        page: 101 - index,
+        top: (101 - index) * 100,
+        left: 0,
+      })),
+      false,
+      true,
+    ],
+    `${context}: 101 pushes must keep the newest 100 positions.`,
+  );
+
+  history.clear();
+  history.push(A);
+  history.push({ ...A });
+  assert.deepEqual(
+    [history.back(B), history.back(A), history.forward(A)],
+    [A, null, B],
+    `${context}: repeated captures before one jump must take one Back press.`,
+  );
+  history.clear();
+  history.push(A);
+  history.push(B);
+  history.back(C);
+  history.push({ ...A });
+  assert.equal(
+    history.canGoForward(),
+    false,
+    `${context}: even a repeated capture must drop forward entries.`,
+  );
+  console.log(
+    'View history checks passed: positions, button flags, forward drop, 100-entry cap.',
+  );
+}
 
 /**
  * Walk the wheel for real.
@@ -79,6 +168,8 @@ function assertPageModeWheel(context) {
 }
 
 const toolbarButtonIds = [
+  'historyBack',
+  'historyForward',
   'previous',
   'next',
   'zoomOut',
@@ -100,6 +191,7 @@ export function assertViewerContract({
   viewerScriptSource,
   context = 'viewer',
 }) {
+  assertViewHistory(context);
   assert.doesNotMatch(
     webviewSource,
     /executeCommand\(['"]vscode\.openWith['"],\s*this\.resource,\s*['"]default['"]/,
@@ -368,6 +460,23 @@ export function assertViewerContract({
   );
 
   if (viewerScriptSource) {
+    assert.match(
+      viewerScriptSource,
+      /from '\.\/viewHistory\.mjs'/,
+      `${context}: the viewer must import view history.`,
+    );
+    for (const id of ['historyBack', 'historyForward']) {
+      assert.match(
+        viewerScriptSource,
+        new RegExp(`${id}: element\\('${id}'\\)`),
+        `${context}: the viewer must register ${id}.`,
+      );
+      assert.match(
+        webviewSource,
+        new RegExp(`<button id="${id}"[^>]*class="icon-button"[^>]*disabled>`),
+        `${context}: ${id} must use toolbar styles and start disabled.`,
+      );
+    }
     assert.match(
       viewerScriptSource,
       /function applyPageColorVariables\(viewer, theme\)\s*{[\s\S]*?viewer\.style\.setProperty\(['"]--page-bg-color['"], pageColors\.background\);[\s\S]*?viewer\.style\.removeProperty\(['"]--page-bg-color['"]\);[\s\S]*?}/,

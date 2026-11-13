@@ -51,6 +51,7 @@ a PDF or Markdown file and choose **Open in pdf-next** to read it there.
   panel come back exactly as you left them.
 - **Text search and selection**, with optional copy-on-select.
 - **Outline and thumbnail sidebars** for quick navigation in long documents.
+- **Back and Forward buttons** return to earlier views after links or outline jumps, with Alt+Left / Alt+Right (Cmd+[ / Cmd+] on macOS).
 - **Inter-PDF links** that work locally and preserve fragments like `#page=2`.
 - **Keyboard-first navigation**: vim-style scrolling, paging, and zoom (see
   [shortcuts](#keyboard-shortcuts)).

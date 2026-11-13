@@ -1093,6 +1093,8 @@ async function runSuite(): Promise<void> {
 
   // Toolbar button contract assertions
   const toolbarButtonIds = [
+    'historyBack',
+    'historyForward',
     'previous',
     'next',
     'zoomOut',
@@ -1499,6 +1501,11 @@ async function runSuite(): Promise<void> {
     viewerScriptText,
     /from '\.\/pageMode\.mjs'/,
     'Viewer must import the page-mode wheel rather than restating it.',
+  );
+  assert.match(
+    viewerScriptText,
+    /from '\.\/viewHistory\.mjs'/,
+    'Viewer must import the view history module.',
   );
   assert.doesNotMatch(
     viewerScriptText,
