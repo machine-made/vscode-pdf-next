@@ -1,3 +1,5 @@
+![vscode-pdf-next banner](https://raw.githubusercontent.com/machine-made/vscode-pdf-next/main/assets/readme-banner-v3.jpg)
+
 [![CI](https://github.com/machine-made/vscode-pdf-next/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/machine-made/vscode-pdf-next/actions/workflows/ci.yml)
 [![Marketplace](https://vsmarketplacebadges.dev/version/RicardoFrantz.pdf-preview-next.svg)](https://marketplace.visualstudio.com/items?itemName=RicardoFrantz.pdf-preview-next)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
