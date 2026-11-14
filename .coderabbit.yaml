@@ -1,9 +1,8 @@
 # vscode-pdf-next: CodeRabbit reviews every pull request automatically.
-# This is machine-made's central config (machine-made/coderabbit) with
-# automatic reviews and their status turned on: a repo file replaces the
-# central one as a whole, so the rest is copied from it. vscode-pdf-next is public,
-# where CodeRabbit is free.
+# This file merges with machine-made's central config (machine-made/coderabbit)
+# through inheritance: true. vscode-pdf-next is public, where CodeRabbit is free.
 # Schema: https://coderabbit.ai/integrations/schema.v2.json
+inheritance: true
 language: en-US
 tone_instructions: "Terse. Real defects first, the most severe first. No praise, no filler. Plain words: one idea per sentence, active voice."
 
@@ -17,7 +16,7 @@ reviews:
   sequence_diagrams: false
 
   auto_review:
-    enabled: true               # every PR; the central config is manual only (jac decision 0021)
+    enabled: true               # every non-draft PR
     auto_pause_after_reviewed_commits: 0   # and every push, without pausing
     drafts: false               # sessions open PRs ready; drafts wait
     base_branches: [".*"]
