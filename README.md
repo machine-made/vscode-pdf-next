@@ -1,11 +1,11 @@
-# vscode-pdf Next by machine-made — fast, secure PDF viewing in VS Code
+![vscode-pdf-next banner](https://raw.githubusercontent.com/machine-made/vscode-pdf-next/main/assets/readme-banner-v3.jpg)
 
-[![CI](https://github.com/machine-made/vscode-pdf-next/actions/workflows/ci.yml/badge.svg)](https://github.com/machine-made/vscode-pdf-next/actions/workflows/ci.yml)
-[![Marketplace](https://img.shields.io/badge/marketplace-vscode--pdf--next-blue)](https://marketplace.visualstudio.com/items?itemName=RicardoFrantz.pdf-preview-next)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+[![CI](https://github.com/machine-made/vscode-pdf-next/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/machine-made/vscode-pdf-next/actions/workflows/ci.yml)
+[![Marketplace](https://vsmarketplacebadges.dev/version/RicardoFrantz.pdf-preview-next.svg)](https://marketplace.visualstudio.com/items?itemName=RicardoFrantz.pdf-preview-next)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![GitHub](https://img.shields.io/badge/github-vscode--pdf--next-blue)](https://github.com/machine-made/vscode-pdf-next)
 
-Open PDFs right inside VS Code — with **true dark mode**, instant live reload
+`vscode-pdf-next` opens PDFs right inside VS Code, with **dark mode**, instant live reload
 for LaTeX and Typst builds, search, outline navigation, and a
 security-hardened PDF.js 6 runtime.
 
@@ -23,20 +23,20 @@ a PDF or Markdown file and choose **Open in pdf-next** to read it there.
 
 ## Why this extension?
 
-- 🌙 **True dark mode.** Not just inverted colors — Night mode asks PDF.js to
+- **Dark mode.** Not just inverted colors — Night mode asks PDF.js to
   re-render page content for low-eye-strain reading, with auto theme matching
-  and an inversion fallback for scanned documents. Your PDFs finally fit your
+  and an inversion fallback for scanned documents. PDFs fit your
   dark setup.
-- ⚡ **Fast.** Powered by the latest Mozilla PDF.js — currently
+- **Fast.** Powered by the latest Mozilla PDF.js — currently
   `pdfjs-dist@6.4.299`, the same engine Firefox uses — with all PDF parsing
   and decoding in a dedicated worker thread so the interface never blocks.
   No telemetry, no network calls, no cloud round-trips: your PDFs never
   leave your machine.
-- 🔒 **Secure by design.** Strict webview sandboxing, no shell execution,
+- **Secure by design.** Strict webview sandboxing, no shell execution,
   script eval disabled, WebAssembly limited to PDF.js's own image decoders,
   and every release package automatically scanned before publishing. See the
   [security model](#security-model) below.
-- 🔁 **Built for TeX/Typst workflows.** Debounced live reload keeps your page,
+- **Built for TeX/Typst workflows.** Debounced live reload keeps your page,
   zoom, and scroll position exactly where they were — even when your build
   tool deletes and recreates the PDF mid-compile.
 
@@ -61,7 +61,7 @@ a PDF or Markdown file and choose **Open in pdf-next** to read it there.
   [pdf-next](https://github.com/machine-made/pdf-next) app (see
   [below](#open-in-pdf-next)).
 
-## Dark mode 🌙
+## Dark mode
 
 Reading a blinding white PDF in a dark editor is miserable. vscode-pdf Next
 ships a full range of appearance modes — cycle them from the toolbar or pin
