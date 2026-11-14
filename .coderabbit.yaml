@@ -16,7 +16,7 @@ reviews:
   sequence_diagrams: false
 
   auto_review:
-    enabled: true               # every PR (jac decision 0048)
+    enabled: true               # every non-draft PR
     auto_pause_after_reviewed_commits: 0   # and every push, without pausing
     drafts: false               # sessions open PRs ready; drafts wait
     base_branches: [".*"]
