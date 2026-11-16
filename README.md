@@ -27,7 +27,7 @@ a PDF or Markdown file and choose **Open in pdf-next** to read it there.
   re-render page content for low-eye-strain reading, with auto theme matching
   and an inversion fallback for scanned documents. PDFs fit your
   dark setup.
-- **Fast.** Powered by the latest Mozilla PDF.js — currently
+- **Built on PDF.js.** Powered by the latest Mozilla PDF.js — currently
   `pdfjs-dist@6.4.299`, the same engine Firefox uses — with all PDF parsing
   and decoding in a dedicated worker thread so the interface never blocks.
   No telemetry, no network calls, no cloud round-trips: your PDFs never
