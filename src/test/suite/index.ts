@@ -1682,6 +1682,11 @@ async function runSuite(): Promise<void> {
   );
   assert.match(
     viewerScriptText,
+    /this\.loadSidebarChangeCount = this\.sidebarChangeCount;[\s\S]*?const keepCurrentSidebar =\s*this\.sidebarChangeCount !== this\.loadSidebarChangeCount;/,
+    'A sidebar change made while the PDF reloads must survive the reload.',
+  );
+  assert.match(
+    viewerScriptText,
     /addEventListener\('DOMContentLoaded', startApp/,
   );
 
