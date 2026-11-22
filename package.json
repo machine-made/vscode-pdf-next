@@ -2,7 +2,7 @@
   "name": "pdf-preview-next",
   "displayName": "vscode-pdf Next by machine-made",
   "description": "Fast, secure PDF viewing in VS Code by machine-made: true dark mode, the latest PDF.js (6.4.299) in a real worker thread, live reload for LaTeX/Typst including WSL, search, outline, reliable preview state, and one right-click to open PDFs and Markdown in the pdf-next app.",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "packageManager": "bun@1.3.13",
   "publisher": "RicardoFrantz",
   "author": {
