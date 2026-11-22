@@ -96,7 +96,7 @@
       {
         "command": "pdf-preview.toggleOutline",
         "title": "vscode-pdf Next: Toggle Outline",
-        "enablement": "activeCustomEditorId == pdf-preview-next.preview"
+        "enablement": "pdf-preview-next.previewVisible"
       },
       {
         "command": "pdf-preview.openInPdfNext",
@@ -276,7 +276,7 @@
       "commandPalette": [
         {
           "command": "pdf-preview.toggleOutline",
-          "when": "activeCustomEditorId == pdf-preview-next.preview"
+          "when": "pdf-preview-next.previewVisible"
         },
         {
           "command": "pdf-preview.openInPdfNext",

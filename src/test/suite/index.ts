@@ -986,6 +986,25 @@ async function runSuite(): Promise<void> {
     commandTitles.get('pdf-preview.toggleOutline'),
     'vscode-pdf Next: Toggle Outline',
   );
+  // Issue #11: the key must work while the user types in the LaTeX file
+  // beside the preview, so the rule cannot require the preview to have focus.
+  const toggleOutlineCommand = extension.packageJSON.contributes.commands.find(
+    ({ command }: { command: string }) =>
+      command === 'pdf-preview.toggleOutline',
+  );
+  assert.strictEqual(
+    toggleOutlineCommand?.enablement,
+    'pdf-preview-next.previewVisible',
+  );
+  const providerTypeScriptText = await readExtensionFile(
+    extension,
+    'src',
+    'pdfProvider.ts',
+  );
+  assert.match(
+    providerTypeScriptText,
+    /'setContext',\s*'pdf-preview-next\.previewVisible',\s*this\.activePanel\?\.visible === true/,
+  );
   assert.strictEqual(
     commandTitles.get('pdf-preview.print'),
     'vscode-pdf Next: Open in System Viewer for Printing',
