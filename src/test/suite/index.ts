@@ -1604,6 +1604,36 @@ async function runSuite(): Promise<void> {
     /const HOST_MESSAGE_TYPES = new Set\(\[[\s\S]*?['"]auto-reload-state['"][\s\S]*?\]\)/,
     'Viewer must validate host message types before dispatching.',
   );
+  // hostMessageFromEvent() drops any type missing from HOST_MESSAGE_TYPES, so a
+  // message the host can send but the viewer does not allow is silently lost.
+  const contractSourceText = await readExtensionFile(
+    extension,
+    'src',
+    'webviewContract.ts',
+  );
+  const hostMessageUnion = contractSourceText.match(
+    /export type HostToViewerMessage =([\s\S]*?);\n/,
+  );
+  assert.ok(hostMessageUnion, 'HostToViewerMessage union not found.');
+  const hostMessageTypes = [
+    ...(hostMessageUnion[1] ?? '').matchAll(/type: '([a-z-]+)'/g),
+  ].map((match) => match[1]);
+  assert.ok(hostMessageTypes.length > 0);
+  const allowedHostMessageBlock = viewerScriptText.match(
+    /const HOST_MESSAGE_TYPES = new Set\(\[([\s\S]*?)\]\)/,
+  );
+  assert.ok(allowedHostMessageBlock, 'HOST_MESSAGE_TYPES not found.');
+  const allowedHostMessageTypes = new Set(
+    [...(allowedHostMessageBlock[1] ?? '').matchAll(/'([a-z-]+)'/g)].map(
+      (match) => match[1],
+    ),
+  );
+  for (const type of hostMessageTypes) {
+    assert.ok(
+      allowedHostMessageTypes.has(type),
+      `HOST_MESSAGE_TYPES in lib/main.mjs must allow the host message '${type}'.`,
+    );
+  }
   assert.match(
     viewerScriptText,
     /function selectedTextFromTextLayer\(\)[\s\S]*?commonAncestorContainer[\s\S]*?closest\(['"]\.textLayer['"]\)/,
