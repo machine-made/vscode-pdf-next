@@ -939,6 +939,7 @@ async function runSuite(): Promise<void> {
     'pdf-preview.printDirect',
     'pdf-preview.refreshPreview',
     'pdf-preview.resetViewState',
+    'pdf-preview.toggleOutline',
   ]);
   // activationEvents is not declared in package.json: VS Code >= 1.74
   // generates onCommand/onCustomEditor events from the contributes section.
@@ -956,6 +957,7 @@ async function runSuite(): Promise<void> {
       'onCommand:pdf-preview.printDirect',
       'onCommand:pdf-preview.refreshPreview',
       'onCommand:pdf-preview.resetViewState',
+      'onCommand:pdf-preview.toggleOutline',
       'onCustomEditor:pdf-preview-next.preview',
     ]) {
       assert.ok(
@@ -979,6 +981,10 @@ async function runSuite(): Promise<void> {
   assert.strictEqual(
     commandTitles.get('pdf-preview.resetViewState'),
     'vscode-pdf Next: Reset View State',
+  );
+  assert.strictEqual(
+    commandTitles.get('pdf-preview.toggleOutline'),
+    'vscode-pdf Next: Toggle Outline',
   );
   assert.strictEqual(
     commandTitles.get('pdf-preview.print'),
@@ -1663,6 +1669,16 @@ async function runSuite(): Promise<void> {
     viewerScriptText,
     /resetViewState\(\)\s*{[\s\S]*?clearTimeout\(this\.persistViewStateTimer\);[\s\S]*?this\.config\.initialViewState = null;[\s\S]*?restoreView: false,[\s\S]*?userInitiated: true,/,
     'Active viewer reset must ignore saved startup state and reload from defaults.',
+  );
+  assert.match(
+    viewerScriptText,
+    /message\.type === ['"]toggle-outline['"][\s\S]*?this\.toggleOutline\(\)/,
+    'Toggle Outline command must reach the active viewer.',
+  );
+  assert.match(
+    viewerScriptText,
+    /toggleOutline\(\)\s*{[\s\S]*?setOutlineVisible\(false, { remember: true }\)[\s\S]*?setSidebarPanel\(['"]outline['"], { remember: true }\)[\s\S]*?setOutlineVisible\(true, { remember: true }\)[\s\S]*?setOutlineVisible\(!visible, { remember: true }\)/,
+    'Toggle Outline must persist the sidebar state like the toolbar button.',
   );
   assert.match(
     viewerScriptText,

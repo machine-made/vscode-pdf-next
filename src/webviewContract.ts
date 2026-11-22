@@ -58,7 +58,9 @@ export type HostToViewerMessage =
   | { type: 'document-error'; requestId: number; message: string }
   | { type: 'file-deleted' }
   | { type: 'reload' }
-  | { type: 'reset-view-state' };
+  | { type: 'reset-view-state' }
+  // Show the outline, or hide the sidebar when the outline is already shown.
+  | { type: 'toggle-outline' };
 
 export type ViewerEvent =
   | {

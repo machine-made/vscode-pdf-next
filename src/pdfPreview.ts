@@ -706,6 +706,14 @@ export class PdfPreview extends Disposable {
     }
   }
 
+  /// Show the outline, or hide the sidebar when the outline is showing.
+  public toggleOutline(): void {
+    if (!this.isDisposed) {
+      const message: HostToViewerMessage = { type: 'toggle-outline' };
+      void this.webviewEditor.webview.postMessage(message);
+    }
+  }
+
   public async resetViewState(): Promise<void> {
     await clearPdfPreviewViewState(this.workspaceState, this.resource);
     if (!this.isDisposed) {
