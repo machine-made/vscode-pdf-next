@@ -143,6 +143,15 @@ code --install-extension pdf-preview-next-<version>.vsix --force
 | `Ctrl+R` / `Cmd+R`  | Refresh the preview      |
 | `Esc`               | Close the find bar       |
 
+**vscode-pdf Next: Toggle Outline** has no default key. To bind one, add an
+entry to `keybindings.json` (**Preferences: Open Keyboard Shortcuts (JSON)**).
+The key then works while a PDF preview is on screen, also when you type in the
+LaTeX file beside it:
+
+```json
+{ "key": "ctrl+alt+o", "command": "pdf-preview.toggleOutline", "when": "pdf-preview-next.previewVisible" }
+```
+
 ## Settings
 
 | Setting                              | Default    | Notes                                                                                    |
@@ -179,6 +188,7 @@ they control file watching rather than rendering defaults.
 | `vscode-pdf Next: Open in System Viewer for Printing` | Open the PDF in your default PDF app for native printing.                      |
 | `vscode-pdf Next: Print Directly to Default Printer`  | Advanced: run `pdf-preview.printCommand` or submit to the default CUPS printer. |
 | `vscode-pdf Next: Reset View State`                   | Clear saved page, zoom, scroll, and sidebar state for the active PDF.          |
+| `vscode-pdf Next: Toggle Outline`                     | Show the outline of the PDF on screen, or hide the sidebar if it shows the outline. |
 | `vscode-pdf Next: Open in pdf-next`                   | Open the selected PDF, Markdown or image files in the pdf-next app.            |
 
 The toolbar also provides one-click controls for external open, appearance

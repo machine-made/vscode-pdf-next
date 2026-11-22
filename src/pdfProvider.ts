@@ -9,6 +9,7 @@ export class PdfCustomProvider implements vscode.CustomReadonlyEditorProvider {
   public static readonly viewType = 'pdf-preview-next.preview';
 
   private activePreview: PdfPreview | undefined;
+  private activePanel: vscode.WebviewPanel | undefined;
   private lastViewerEvent: RecordedViewerEvent | undefined;
   private readonly viewerEventEmitter =
     new vscode.EventEmitter<RecordedViewerEvent>();
@@ -48,7 +49,9 @@ export class PdfCustomProvider implements vscode.CustomReadonlyEditorProvider {
     const updateActivePreview = (): void => {
       if (webviewEditor.active) {
         this.activePreview = preview;
+        this.activePanel = webviewEditor;
       }
+      this.updatePreviewVisibleContext();
     };
 
     updateActivePreview();
@@ -58,7 +61,9 @@ export class PdfCustomProvider implements vscode.CustomReadonlyEditorProvider {
       viewStateSubscription.dispose();
       if (this.activePreview === preview) {
         this.activePreview = undefined;
+        this.activePanel = undefined;
       }
+      this.updatePreviewVisibleContext();
       preview.dispose();
     });
   }
@@ -83,6 +88,10 @@ export class PdfCustomProvider implements vscode.CustomReadonlyEditorProvider {
 
   public async clearPageModeForActivePreview(): Promise<void> {
     await this.withActivePreview((preview) => preview.clearPageMode());
+  }
+
+  public async toggleOutlineForActivePreview(): Promise<void> {
+    await this.withActivePreview((preview) => preview.toggleOutline());
   }
 
   public async resetViewStateForActivePreview(): Promise<void> {
@@ -127,6 +136,18 @@ export class PdfCustomProvider implements vscode.CustomReadonlyEditorProvider {
         resolve(event);
       });
     });
+  }
+
+  // Commands go to the last focused preview, which stays on screen while the
+  // user types in a LaTeX file beside it. This key lets a keybinding and the
+  // Command Palette offer Toggle Outline in that case, not only while the
+  // preview itself has focus.
+  private updatePreviewVisibleContext(): void {
+    void vscode.commands.executeCommand(
+      'setContext',
+      'pdf-preview-next.previewVisible',
+      this.activePanel?.visible === true,
+    );
   }
 
   private async withActivePreview(

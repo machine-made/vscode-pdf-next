@@ -939,6 +939,7 @@ async function runSuite(): Promise<void> {
     'pdf-preview.printDirect',
     'pdf-preview.refreshPreview',
     'pdf-preview.resetViewState',
+    'pdf-preview.toggleOutline',
   ]);
   // activationEvents is not declared in package.json: VS Code >= 1.74
   // generates onCommand/onCustomEditor events from the contributes section.
@@ -956,6 +957,7 @@ async function runSuite(): Promise<void> {
       'onCommand:pdf-preview.printDirect',
       'onCommand:pdf-preview.refreshPreview',
       'onCommand:pdf-preview.resetViewState',
+      'onCommand:pdf-preview.toggleOutline',
       'onCustomEditor:pdf-preview-next.preview',
     ]) {
       assert.ok(
@@ -979,6 +981,29 @@ async function runSuite(): Promise<void> {
   assert.strictEqual(
     commandTitles.get('pdf-preview.resetViewState'),
     'vscode-pdf Next: Reset View State',
+  );
+  assert.strictEqual(
+    commandTitles.get('pdf-preview.toggleOutline'),
+    'vscode-pdf Next: Toggle Outline',
+  );
+  // Issue #11: the key must work while the user types in the LaTeX file
+  // beside the preview, so the rule cannot require the preview to have focus.
+  const toggleOutlineCommand = extension.packageJSON.contributes.commands.find(
+    ({ command }: { command: string }) =>
+      command === 'pdf-preview.toggleOutline',
+  );
+  assert.strictEqual(
+    toggleOutlineCommand?.enablement,
+    'pdf-preview-next.previewVisible',
+  );
+  const providerTypeScriptText = await readExtensionFile(
+    extension,
+    'src',
+    'pdfProvider.ts',
+  );
+  assert.match(
+    providerTypeScriptText,
+    /'setContext',\s*'pdf-preview-next\.previewVisible',\s*this\.activePanel\?\.visible === true/,
   );
   assert.strictEqual(
     commandTitles.get('pdf-preview.print'),
@@ -1604,6 +1629,36 @@ async function runSuite(): Promise<void> {
     /const HOST_MESSAGE_TYPES = new Set\(\[[\s\S]*?['"]auto-reload-state['"][\s\S]*?\]\)/,
     'Viewer must validate host message types before dispatching.',
   );
+  // hostMessageFromEvent() drops any type missing from HOST_MESSAGE_TYPES, so a
+  // message the host can send but the viewer does not allow is silently lost.
+  const contractSourceText = await readExtensionFile(
+    extension,
+    'src',
+    'webviewContract.ts',
+  );
+  const hostMessageUnion = contractSourceText.match(
+    /export type HostToViewerMessage =([\s\S]*?);\n/,
+  );
+  assert.ok(hostMessageUnion, 'HostToViewerMessage union not found.');
+  const hostMessageTypes = [
+    ...(hostMessageUnion[1] ?? '').matchAll(/type: '([a-z-]+)'/g),
+  ].map((match) => match[1]);
+  assert.ok(hostMessageTypes.length > 0);
+  const allowedHostMessageBlock = viewerScriptText.match(
+    /const HOST_MESSAGE_TYPES = new Set\(\[([\s\S]*?)\]\)/,
+  );
+  assert.ok(allowedHostMessageBlock, 'HOST_MESSAGE_TYPES not found.');
+  const allowedHostMessageTypes = new Set(
+    [...(allowedHostMessageBlock[1] ?? '').matchAll(/'([a-z-]+)'/g)].map(
+      (match) => match[1],
+    ),
+  );
+  for (const type of hostMessageTypes) {
+    assert.ok(
+      allowedHostMessageTypes.has(type),
+      `HOST_MESSAGE_TYPES in lib/main.mjs must allow the host message '${type}'.`,
+    );
+  }
   assert.match(
     viewerScriptText,
     /function selectedTextFromTextLayer\(\)[\s\S]*?commonAncestorContainer[\s\S]*?closest\(['"]\.textLayer['"]\)/,
@@ -1633,6 +1688,21 @@ async function runSuite(): Promise<void> {
     viewerScriptText,
     /resetViewState\(\)\s*{[\s\S]*?clearTimeout\(this\.persistViewStateTimer\);[\s\S]*?this\.config\.initialViewState = null;[\s\S]*?restoreView: false,[\s\S]*?userInitiated: true,/,
     'Active viewer reset must ignore saved startup state and reload from defaults.',
+  );
+  assert.match(
+    viewerScriptText,
+    /message\.type === ['"]toggle-outline['"][\s\S]*?this\.toggleOutline\(\)/,
+    'Toggle Outline command must reach the active viewer.',
+  );
+  assert.match(
+    viewerScriptText,
+    /toggleOutline\(\)\s*{[\s\S]*?setOutlineVisible\(false, { remember: true }\)[\s\S]*?setSidebarPanel\(['"]outline['"], { remember: true }\)[\s\S]*?setOutlineVisible\(true, { remember: true }\)[\s\S]*?setOutlineVisible\(!visible, { remember: true }\)/,
+    'Toggle Outline must persist the sidebar state like the toolbar button.',
+  );
+  assert.match(
+    viewerScriptText,
+    /this\.loadSidebarChangeCount = this\.sidebarChangeCount;[\s\S]*?const keepCurrentSidebar =\s*this\.sidebarChangeCount !== this\.loadSidebarChangeCount;/,
+    'A sidebar change made while the PDF reloads must survive the reload.',
   );
   assert.match(
     viewerScriptText,

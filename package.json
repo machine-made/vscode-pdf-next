@@ -94,6 +94,11 @@
         "title": "vscode-pdf Next: Reset View State"
       },
       {
+        "command": "pdf-preview.toggleOutline",
+        "title": "vscode-pdf Next: Toggle Outline",
+        "enablement": "pdf-preview-next.previewVisible"
+      },
+      {
         "command": "pdf-preview.openInPdfNext",
         "title": "Open in pdf-next",
         "category": "vscode-pdf Next",
@@ -269,6 +274,10 @@
         }
       ],
       "commandPalette": [
+        {
+          "command": "pdf-preview.toggleOutline",
+          "when": "pdf-preview-next.previewVisible"
+        },
         {
           "command": "pdf-preview.openInPdfNext",
           "when": "resourceExtname =~ /^\\.(pdf|md|markdown|png|jpe?g|webp|avif|gif|bmp)$/i"
